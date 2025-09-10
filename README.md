@@ -13,6 +13,7 @@ Tested on oF v0.12.0 (win/mac)
     - `int`
     - `ofVec2f`
     - `ofVec3f`
+    - `ofRectangle`
     - `bool` (as Checkbox)
     - `enum` (as Combo)
 

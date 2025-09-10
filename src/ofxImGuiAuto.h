@@ -60,6 +60,14 @@ public:
             ImGui::DragFloat2(label, &value.x);
         } else if constexpr (std::is_same_v<T, ofVec3f>) {
             ImGui::DragFloat3(label, &value.x);
+        } else if constexpr (std::is_same_v<T, ofRectangle>) {
+            float rect[4] = { value.x, value.y, value.width, value.height };
+            if (ImGui::DragFloat4(label, rect)) {
+                value.x = rect[0];
+                value.y = rect[1];
+                value.width = rect[2];
+                value.height = rect[3];
+            }
         }
     }
 
@@ -87,6 +95,14 @@ public:
             ImGui::DragFloat2(label, &v.x, std::get<I+1>(tup)...);
         } else if constexpr (std::is_same_v<T, ofVec3f>) {
             ImGui::DragFloat3(label, &v.x, std::get<I+1>(tup)...);
+        } else if constexpr (std::is_same_v<T, ofRectangle>) {
+            float rect[4] = { v.x, v.y, v.width, v.height };
+            if (ImGui::DragFloat4(label, rect, std::get<I+1>(tup)...)) {
+                v.x = rect[0];
+                v.y = rect[1];
+                v.width = rect[2];
+                v.height = rect[3];
+            }
         }
     }
 
