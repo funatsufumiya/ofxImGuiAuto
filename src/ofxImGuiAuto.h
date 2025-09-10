@@ -140,12 +140,12 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 
 // Helper macros for tuple creation (support zero or more args)
 
-#define IMGUI_MAKE_TUPLE_1(name) std::make_tuple(std::ref(name))
-#define IMGUI_MAKE_TUPLE_N(name, ...) std::make_tuple(std::ref(name), IMGUI_EXPAND(__VA_ARGS__))
-#define IMGUI_GET_TUPLE_MACRO(_1,_2,NAME,...) NAME
-#define IMGUI_MAKE_TUPLE(...) IMGUI_EXPAND(IMGUI_GET_TUPLE_MACRO(__VA_ARGS__, IMGUI_MAKE_TUPLE_N, IMGUI_MAKE_TUPLE_1)(__VA_ARGS__))
 
-#define IMGUI_AUTO(name, ...) ofxImGuiAuto::DrawControl(IMGUI_MAKE_TUPLE(name, ##__VA_ARGS__), #name);
+// Macro overload trick for MSVC: count args and select correct tuple macro
+#define IMGUI_AUTO_CHOOSER(_1, _2, NAME, ...) NAME
+#define IMGUI_AUTO_1(name) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name)), #name);
+#define IMGUI_AUTO_N(name, ...) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(__VA_ARGS__)), #name);
+#define IMGUI_AUTO(...) IMGUI_EXPAND(IMGUI_AUTO_CHOOSER(__VA_ARGS__, IMGUI_AUTO_N, IMGUI_AUTO_1)(__VA_ARGS__))
 
 // Save/Load button macro
 #define IMGUI_AUTO_SAVE_LOAD(saveFunc, loadFunc, saveLabel, loadLabel) \
