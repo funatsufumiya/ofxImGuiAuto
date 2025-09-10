@@ -37,6 +37,8 @@ public:
         fadeIn = 0.5f;
         duration = 1.0f;
         fadeOut = 0.5f;
+        
+        load();
     }
 
     void save(){
