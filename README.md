@@ -1,8 +1,8 @@
 # ofxImGuiAuto
 
-ofxImGuiAuto is an addon for OpenFrameworks that simplifies the creation of ImGui controls for various data types.
+This addon provides macros named `IMGUI_AUTO`, `IMGUI_AUTOS`, `IMGUI_AUTO_SAVE_LOAD` that automatically generate ImGui DragXXX controls and Save/Load buttons.
 
-This addon provides macros named `IMGUI_AUTO` and `IMGUI_AUTOS` that automatically generate ImGui DragXXX controls and Save/Load buttons (calls save() and load()), allowing for easy integration of user interface elements into your applications.
+Tested on oF v0.12.0 (win/mac)
 
 ## Features
 
