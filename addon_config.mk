@@ -6,7 +6,7 @@ meta:
 	ADDON_URL = https://github.com/funatsufumiya/ofxImGuiAuto
 
 common:
-# 	ADDON_DEPENDENCIES = ofxImGui
+	ADDON_DEPENDENCIES = ofxImGui
 	ADDON_INCLUDES = libs/magic_enum/include
 	ADDON_INCLUDES += src
 
