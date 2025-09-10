@@ -11,8 +11,6 @@ Tested on oF v0.12.0 (win/mac)
   - `int`
   - `ofVec2f`
   - `ofVec3f`
-- Supports additional arguments using tuples.
-- Provides Save and Load buttons for easy data management.
 
 ### Example
 
