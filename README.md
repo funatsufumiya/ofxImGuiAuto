@@ -8,7 +8,7 @@ Tested on oF v0.12.0 (win/mac)
 
 ## Features
 
-- Automatically generates ImGui Drag controls for:
+- Automatically generates ImGui (Drag) controls for:
     - `float`
     - `int`
     - `ofVec2f`
