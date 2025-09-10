@@ -2,6 +2,8 @@
 
 This addon provides macros named `IMGUI_AUTO`, `IMGUI_AUTOS`, `IMGUI_AUTO_SAVE_LOAD` that automatically generate ImGui DragXXX controls and Save/Load buttons.
 
+C++17 or higher is needed.
+
 Tested on oF v0.12.0 (win/mac)
 
 ## Features
@@ -59,7 +61,7 @@ public:
             scale,
             offset,
             baseSize,
-            enabled // bool control
+            enabled
         );
         IMGUI_AUTO(speed, 0.1f);
         IMGUI_AUTO(fadeIn, 0.1f);
@@ -70,6 +72,10 @@ public:
     }
 };
 ```
+
+## TODOs
+
+- enum (using [magic_enum](https://github.com/Neargye/magic_enum))
 
 ## License
 
