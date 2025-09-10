@@ -43,7 +43,9 @@ public:
 
     template<typename T>
     static void DrawControl(T& value, const char* label) {
-        if constexpr (std::is_same_v<T, float>) {
+        if constexpr (std::is_same_v<T, bool>) {
+            ImGui::Checkbox(label, &value);
+        } else if constexpr (std::is_same_v<T, float>) {
             ImGui::DragFloat(label, &value);
         } else if constexpr (std::is_same_v<T, int>) {
             ImGui::DragInt(label, &value);
@@ -62,7 +64,9 @@ public:
     template<typename T, typename... Args, size_t... I>
     static void DrawControlTuple(const char* label, std::tuple<T&, Args...>& tup, std::index_sequence<I...>) {
         auto& v = std::get<0>(tup);
-        if constexpr (std::is_same_v<T, float>) {
+        if constexpr (std::is_same_v<T, bool>) {
+            ImGui::Checkbox(label, &v);
+        } else if constexpr (std::is_same_v<T, float>) {
             ImGui::DragFloat(label, &v, std::get<I+1>(tup)...);
         } else if constexpr (std::is_same_v<T, int>) {
             ImGui::DragInt(label, &v, std::get<I+1>(tup)...);

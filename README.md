@@ -7,10 +7,11 @@ Tested on oF v0.12.0 (win/mac)
 ## Features
 
 - Automatically generates ImGui Drag controls for:
-  - `float`
-  - `int`
-  - `ofVec2f`
-  - `ofVec3f`
+    - `float`
+    - `int`
+    - `ofVec2f`
+    - `ofVec3f`
+    - `bool` (as Checkbox)
 
 ### Example
 
@@ -26,6 +27,7 @@ public:
     float fadeIn;
     float duration;
     float fadeOut;
+    bool enabled;
 
     void setup() {
         position = ofVec2f(0, 0);
@@ -37,7 +39,7 @@ public:
         fadeIn = 0.5f;
         duration = 1.0f;
         fadeOut = 0.5f;
-        
+        enabled = true;
         load();
     }
 
@@ -56,7 +58,8 @@ public:
             size,
             scale,
             offset,
-            baseSize
+            baseSize,
+            enabled // bool control
         );
         IMGUI_AUTO(speed, 0.1f);
         IMGUI_AUTO(fadeIn, 0.1f);
