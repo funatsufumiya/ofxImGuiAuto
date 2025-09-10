@@ -5,6 +5,7 @@
 #include <tuple>
 #include <string>
 #include <map>
+#include "magic_enum.hpp"
 
 class ofxImGuiAuto {
 public:
@@ -43,7 +44,13 @@ public:
 
     template<typename T>
     static void DrawControl(T& value, const char* label) {
-        if constexpr (std::is_same_v<T, bool>) {
+        if constexpr (std::is_enum_v<T>) {
+            auto names = magic_enum::enum_names<T>();
+            int current = static_cast<int>(value);
+            if (ImGui::Combo(label, &current, names.data(), names.size())) {
+                value = static_cast<T>(magic_enum::enum_value<T>(current));
+            }
+        } else if constexpr (std::is_same_v<T, bool>) {
             ImGui::Checkbox(label, &value);
         } else if constexpr (std::is_same_v<T, float>) {
             ImGui::DragFloat(label, &value);
@@ -64,7 +71,13 @@ public:
     template<typename T, typename... Args, size_t... I>
     static void DrawControlTuple(const char* label, std::tuple<T&, Args...>& tup, std::index_sequence<I...>) {
         auto& v = std::get<0>(tup);
-        if constexpr (std::is_same_v<T, bool>) {
+        if constexpr (std::is_enum_v<T>) {
+            auto names = magic_enum::enum_names<T>();
+            int current = static_cast<int>(v);
+            if (ImGui::Combo(label, &current, names.data(), names.size())) {
+                v = static_cast<T>(magic_enum::enum_value<T>(current));
+            }
+        } else if constexpr (std::is_same_v<T, bool>) {
             ImGui::Checkbox(label, &v);
         } else if constexpr (std::is_same_v<T, float>) {
             ImGui::DragFloat(label, &v, std::get<I+1>(tup)...);

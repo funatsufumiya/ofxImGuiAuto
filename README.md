@@ -14,6 +14,7 @@ Tested on oF v0.12.0 (win/mac)
     - `ofVec2f`
     - `ofVec3f`
     - `bool` (as Checkbox)
+    - `enum` (as Combo)
 
 ### Example
 
@@ -73,10 +74,8 @@ public:
 };
 ```
 
-## TODOs
-
-- enum (using [magic_enum](https://github.com/Neargye/magic_enum))
-
 ## License
 
 0BSD or WTFPL
+
+(Please note that [magic_enum](https://github.com/Neargye/magic_enum) is [MIT License](https://github.com/Neargye/magic_enum/blob/master/LICENSE).)

@@ -7,7 +7,7 @@ meta:
 
 common:
 # 	ADDON_DEPENDENCIES = ofxImGui
-	ADDON_INCLUDES = 
+	ADDON_INCLUDES = include
 	ADDON_INCLUDES += src
 
 # osx:
