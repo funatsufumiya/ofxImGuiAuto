@@ -137,7 +137,14 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 #define IMGUI_KV_EXPAND(...) IMGUI_EXPAND(IMGUI_GET_MACRO(__VA_ARGS__, IMGUI_KV14, IMGUI_KV13, IMGUI_KV12, IMGUI_KV11, IMGUI_KV10, IMGUI_KV9, IMGUI_KV8, IMGUI_KV7, IMGUI_KV6, IMGUI_KV5, IMGUI_KV4, IMGUI_KV3, IMGUI_KV2, IMGUI_KV1)(__VA_ARGS__))
 
 #define IMGUI_AUTOS(...) IMGUI_KV_EXPAND(__VA_ARGS__)
-#define IMGUI_AUTO(name, ...) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), __VA_ARGS__), #name);
+
+// Helper macros for tuple creation (support zero or more args)
+#define IMGUI_MAKE_TUPLE_1(name) std::make_tuple(std::ref(name))
+#define IMGUI_MAKE_TUPLE_N(name, ...) std::make_tuple(std::ref(name), __VA_ARGS__)
+#define IMGUI_GET_TUPLE_MACRO(_1,_2,NAME,...) NAME
+#define IMGUI_MAKE_TUPLE(...) IMGUI_GET_TUPLE_MACRO(__VA_ARGS__, IMGUI_MAKE_TUPLE_N, IMGUI_MAKE_TUPLE_1)(__VA_ARGS__)
+
+#define IMGUI_AUTO(name, ...) ofxImGuiAuto::DrawControl(IMGUI_MAKE_TUPLE(name, ##__VA_ARGS__), #name);
 
 // Save/Load button macro
 #define IMGUI_AUTO_SAVE_LOAD(saveFunc, loadFunc, saveLabel, loadLabel) \
