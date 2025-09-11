@@ -128,14 +128,44 @@ public:
         }
     }
 
+    // template<typename... Args>
+    // static void DrawControlsVA(const char* const (&labels)[sizeof...(Args)], Args&... args) {
+    //     int i = 0;
+    //     (DrawControl(args, labels[i++]), ...);
+    // }
+
     template<typename... Args>
-    static void DrawControlsVA(const char* const (&labels)[sizeof...(Args)], Args&... args) {
-        int i = 0;
-        (DrawControl(args, labels[i++]), ...);
+    static void DrawControlsVA(const char* const* labels, Args&&... args) {
+        constexpr size_t N = sizeof...(Args);
+        std::vector<void*> arg_ptrs{ (void*)&args... };
+        std::vector<bool> is_float{ (std::is_same_v<std::remove_reference_t<Args>, float> ? true : false)... };
+        std::vector<bool> is_lvalue{ (std::is_lvalue_reference_v<Args> ? true : false)... };
+        size_t i = 0, label_idx = 0;
+        while (i < N) {
+            if (is_lvalue[i]) {
+                float* var = static_cast<float*>(arg_ptrs[i]);
+                size_t j = i + 1;
+                std::vector<float> params;
+                while (j < N && is_float[j] && !is_lvalue[j]) {
+                    params.push_back(*static_cast<float*>(arg_ptrs[j]));
+                    ++j;
+                }
+                if (params.empty()) {
+                    DrawControl(*var, labels[label_idx++]);
+                } else if (params.size() == 1) {
+                    DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[label_idx++]);
+                } else if (params.size() == 2) {
+                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1]), labels[label_idx++]);
+                }
+                i = j;
+            } else {
+                ++i;
+            }
+        }
     }
 
     // template<typename... Args>
-    // static void DrawControlAll(const char* const* labels, Args&&... args) {
+    // static void DrawControlsVA(const char* const* labels, Args&&... args) {
     //     constexpr size_t N = sizeof...(Args);
     //     ImGuiAutoAny anys[N] = { ImGuiAutoAny(std::forward<Args>(args))... };
     //     size_t i = 0;
