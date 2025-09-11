@@ -8,7 +8,8 @@
 #include "magic_enum.hpp"
 
 class ofxImGuiAuto {
-protected:
+
+public:
     struct ImGuiAutoVariant {
         enum class Type {
             TYPE_NONE,
@@ -20,6 +21,7 @@ protected:
             TYPE_RECT,
             TYPE_ENUM
         };
+        // for l_value
         union {
             bool* b;
             float* f;
@@ -29,6 +31,13 @@ protected:
             ofRectangle* r;
             void* e; // keep enum as void*
         } data = {};
+        // rvalue value keep
+        float f_value = 0.0f;
+        int i_value = 0;
+        bool b_value = false;
+        ofVec2f v2_value;
+        ofVec3f v3_value;
+        ofRectangle r_value;
 
         // lvalue reference
         ImGuiAutoVariant(bool& v)      : typ(Type::TYPE_BOOL),  _is_lvalue(true)  { data.b = &v; }
@@ -41,15 +50,15 @@ protected:
         ImGuiAutoVariant(T& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
             : typ(Type::TYPE_ENUM), _is_lvalue(true) { data.e = (void*)&v; }
 
-        // rvalue (const, temporary, etc.)
-        ImGuiAutoVariant(const bool&& v)      : typ(Type::TYPE_BOOL),  _is_lvalue(false)  { data.b = const_cast<bool*>(&v); }
-        ImGuiAutoVariant(const float&& v)     : typ(Type::TYPE_FLOAT), _is_lvalue(false)  { data.f = const_cast<float*>(&v); }
-        ImGuiAutoVariant(const int&& v)       : typ(Type::TYPE_INT),   _is_lvalue(false)  { data.i = const_cast<int*>(&v); }
-        ImGuiAutoVariant(const ofVec2f&& v)   : typ(Type::TYPE_VEC2F), _is_lvalue(false)  { data.v2 = const_cast<ofVec2f*>(&v); }
-        ImGuiAutoVariant(const ofVec3f&& v)   : typ(Type::TYPE_VEC3F), _is_lvalue(false)  { data.v3 = const_cast<ofVec3f*>(&v); }
-        ImGuiAutoVariant(const ofRectangle&& v): typ(Type::TYPE_RECT), _is_lvalue(false)  { data.r = const_cast<ofRectangle*>(&v); }
+        // rvalue (temporary, etc.)
+        ImGuiAutoVariant(bool&& v)      : typ(Type::TYPE_BOOL),  _is_lvalue(false), b_value(v)  { data.b = &b_value; }
+        ImGuiAutoVariant(float&& v)     : typ(Type::TYPE_FLOAT), _is_lvalue(false), f_value(v)  { data.f = &f_value; }
+        ImGuiAutoVariant(int&& v)       : typ(Type::TYPE_INT),   _is_lvalue(false), i_value(v)  { data.i = &i_value; }
+        ImGuiAutoVariant(ofVec2f&& v)   : typ(Type::TYPE_VEC2F), _is_lvalue(false), v2_value(v) { data.v2 = &v2_value; }
+        ImGuiAutoVariant(ofVec3f&& v)   : typ(Type::TYPE_VEC3F), _is_lvalue(false), v3_value(v) { data.v3 = &v3_value; }
+        ImGuiAutoVariant(ofRectangle&& v): typ(Type::TYPE_RECT), _is_lvalue(false), r_value(v)  { data.r = &r_value; }
         template<typename T>
-        ImGuiAutoVariant(const T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
+        ImGuiAutoVariant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
             : typ(Type::TYPE_ENUM), _is_lvalue(false) { data.e = (void*)&v; }
 
         Type get_type() const { return typ; }
@@ -61,7 +70,6 @@ protected:
         Type typ = Type::TYPE_NONE;
     };
 
-public:
     class SaveLoadButton {
     public:
         static inline bool Save(const char* name, const char* msg = "Saved!") {
@@ -188,28 +196,29 @@ public:
     // }
 
     template<typename... Args>
-    static void DrawControlsVA(const char* const* labels, Args&&... args) {
-        constexpr size_t N = sizeof...(Args);
-        std::vector<ImGuiAutoVariant> arg_variants{ ImGuiAutoVariant(args)... };
+    // static void DrawControlsVA(const char* const* labels, Args&&... args) {
+    static void DrawControlsVA(const char* labels_str, ImGuiAutoVariant* variants) {
+        auto labels = SplitAndTrimLabels(labels_str);
+        size_t N = labels.size();
         size_t i = 0, label_idx = 0;
         while (i < N) {
             // if (arg_variants[i].is_lvalue() && arg_variants[i].is_float()) {
-            if (arg_variants[i].is_lvalue()) {
-                auto var = arg_variants[i].data.f;
+            if (variants[i].is_lvalue()) {
+                auto var = variants[i].data.f;
                 size_t j = i + 1;
                 std::vector<float> params;
-                while (j < N && arg_variants[j].is_float() && !arg_variants[j].is_lvalue()) {
-                    params.push_back(*arg_variants[j].data.f);
+                while (j < N && variants[j].is_float() && !variants[j].is_lvalue()) {
+                    params.push_back(*variants[j].data.f);
                     ++j;
                 }
                 if (params.empty()) {
-                    DrawControl(*var, labels[label_idx++]);
+                    DrawControl(*var, labels[label_idx++].c_str());
                 } else if (params.size() == 1) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[label_idx++]);
+                    DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[label_idx++].c_str());
                 } else if (params.size() == 2) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1]), labels[label_idx++]);
+                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1]), labels[label_idx++].c_str());
                 } else if (params.size() == 3) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1], params[2]), labels[label_idx++]);
+                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1], params[2]), labels[label_idx++].c_str());
                 }
                 i = j;
             } else {
@@ -246,46 +255,31 @@ public:
     //         }
     //     }
     // }
+
+    protected:
+        static std::vector<std::string> SplitAndTrimLabels(const char* labels) {
+            std::vector<std::string> result;
+            std::istringstream ss(labels);
+            std::string item;
+            while (std::getline(ss, item, ',')) {
+                // trim
+                item.erase(item.begin(), std::find_if(item.begin(), item.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+                item.erase(std::find_if(item.rbegin(), item.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), item.end());
+                result.push_back(item);
+            }
+            return result;
+        }
 };
 
 inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::saved_time_left_map;
 inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_map;
 
 
-#define IMGUI_EXPAND(x) x
-#define IMGUI_AUTO_IMPL1(a) [&](){ const char* labels[] = {#a}; ofxImGuiAuto::DrawControlsVA(labels, a); }();
-#define IMGUI_AUTO_IMPL2(a, b) [&](){ const char* labels[] = {#a, #b}; ofxImGuiAuto::DrawControlsVA(labels, a, b); }();
-#define IMGUI_AUTO_IMPL3(a, b, c) [&](){ const char* labels[] = {#a, #b, #c}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c); }();
-#define IMGUI_AUTO_IMPL4(a, b, c, d) [&](){ const char* labels[] = {#a, #b, #c, #d}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d); }();
-#define IMGUI_AUTO_IMPL5(a, b, c, d, e) [&](){ const char* labels[] = {#a, #b, #c, #d, #e}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e); }();
-#define IMGUI_AUTO_IMPL6(a, b, c, d, e, f) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f); }();
-#define IMGUI_AUTO_IMPL7(a, b, c, d, e, f, g) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g); }();
-#define IMGUI_AUTO_IMPL8(a, b, c, d, e, f, g, h) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h); }();
-#define IMGUI_AUTO_IMPL9(a, b, c, d, e, f, g, h, i) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i); }();
-#define IMGUI_AUTO_IMPL10(a, b, c, d, e, f, g, h, i, j) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j); }();
-#define IMGUI_AUTO_IMPL11(a, b, c, d, e, f, g, h, i, j, k) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k); }();
-#define IMGUI_AUTO_IMPL12(a, b, c, d, e, f, g, h, i, j, k, l) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l); }();
-#define IMGUI_AUTO_IMPL13(a, b, c, d, e, f, g, h, i, j, k, l, m) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m); }();
-#define IMGUI_AUTO_IMPL14(a, b, c, d, e, f, g, h, i, j, k, l, m, n) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n); }();
-#define IMGUI_AUTO_IMPL15(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o); }();
-#define IMGUI_AUTO_IMPL16(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p); }();
-#define IMGUI_AUTO_IMPL17(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q); }();
-#define IMGUI_AUTO_IMPL18(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r); }();
-#define IMGUI_AUTO_IMPL19(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s); }();
-#define IMGUI_AUTO_IMPL20(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t); }();
-#define IMGUI_AUTO_IMPL21(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u); }();
-#define IMGUI_AUTO_IMPL22(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v); }();
-#define IMGUI_AUTO_IMPL23(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w); }();
-#define IMGUI_AUTO_IMPL24(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w, #x}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x); }();
-#define IMGUI_AUTO_IMPL25(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w, #x, #y}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y); }();
-#define IMGUI_AUTO_IMPL26(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w, #x, #y, #z}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z); }();
-#define IMGUI_AUTO_IMPL27(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w, #x, #y, #z, #aa}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa); }();
-#define IMGUI_AUTO_IMPL28(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w, #x, #y, #z, #aa, #ab}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab); }();
-#define IMGUI_AUTO_IMPL29(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w, #x, #y, #z, #aa, #ab, #ac}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac); }();
-#define IMGUI_AUTO_IMPL30(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac, ad) [&](){ const char* labels[] = {#a, #b, #c, #d, #e, #f, #g, #h, #i, #j, #k, #l, #m, #n, #o, #p, #q, #r, #s, #t, #u, #v, #w, #x, #y, #z, #aa, #ab, #ac, #ad}; ofxImGuiAuto::DrawControlsVA(labels, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, ab, ac, ad); }();
-
-#define IMGUI_AUTO_IMPL_GET_MACRO(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,NAME,...) NAME
-#define IMGUI_AUTOS(...) IMGUI_EXPAND(IMGUI_AUTO_IMPL_GET_MACRO(__VA_ARGS__, IMGUI_AUTO_IMPL30, IMGUI_AUTO_IMPL29, IMGUI_AUTO_IMPL28, IMGUI_AUTO_IMPL27, IMGUI_AUTO_IMPL26, IMGUI_AUTO_IMPL25, IMGUI_AUTO_IMPL24, IMGUI_AUTO_IMPL23, IMGUI_AUTO_IMPL22, IMGUI_AUTO_IMPL21, IMGUI_AUTO_IMPL20, IMGUI_AUTO_IMPL19, IMGUI_AUTO_IMPL18, IMGUI_AUTO_IMPL17, IMGUI_AUTO_IMPL16, IMGUI_AUTO_IMPL15, IMGUI_AUTO_IMPL14, IMGUI_AUTO_IMPL13, IMGUI_AUTO_IMPL12, IMGUI_AUTO_IMPL11, IMGUI_AUTO_IMPL10, IMGUI_AUTO_IMPL9, IMGUI_AUTO_IMPL8, IMGUI_AUTO_IMPL7, IMGUI_AUTO_IMPL6, IMGUI_AUTO_IMPL5, IMGUI_AUTO_IMPL4, IMGUI_AUTO_IMPL3, IMGUI_AUTO_IMPL2, IMGUI_AUTO_IMPL1)(__VA_ARGS__))
+#define IMGUI_AUTOS(...) [&](){ \
+    const char* labels_str = #__VA_ARGS__; \
+    ofxImGuiAuto::ImGuiAutoVariant variants[] = {__VA_ARGS__}; \
+    ofxImGuiAuto::DrawControlsVA(labels_str, variants); \
+}()
 
 // Helper macros for tuple creation (support zero or more args)
 
