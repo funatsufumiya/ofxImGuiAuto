@@ -47,8 +47,19 @@ public:
         if constexpr (std::is_enum_v<T>) {
             auto names = magic_enum::enum_names<T>();
             int current = static_cast<int>(value);
-            if (ImGui::Combo(label, &current, names.data(), names.size())) {
-                value = static_cast<T>(magic_enum::enum_value<T>(current));
+            auto values = magic_enum::enum_values<T>();
+            auto currentName = magic_enum::enum_name(value);
+            if (ImGui::BeginCombo(label, std::string(currentName).c_str())) {
+                for (int i = 0; i < names.size(); i++) {
+                    bool is_selected = (value == values[i]);
+                    if (ImGui::Selectable(std::string(names[i]).c_str(), is_selected)) {
+                        value = values[i];
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
             }
         } else if constexpr (std::is_same_v<T, bool>) {
             ImGui::Checkbox(label, &value);
@@ -82,8 +93,19 @@ public:
         if constexpr (std::is_enum_v<T>) {
             auto names = magic_enum::enum_names<T>();
             int current = static_cast<int>(v);
-            if (ImGui::Combo(label, &current, names.data(), names.size())) {
-                v = static_cast<T>(magic_enum::enum_value<T>(current));
+            auto values = magic_enum::enum_values<T>();
+            auto currentName = magic_enum::enum_name(v);
+            if (ImGui::BeginCombo(label, std::string(currentName).c_str())) {
+                for (int i = 0; i < names.size(); i++) {
+                    bool is_selected = (v == values[i]);
+                    if (ImGui::Selectable(std::string(names[i]).c_str(), is_selected)) {
+                        v = values[i];
+                    }
+                    if (is_selected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
             }
         } else if constexpr (std::is_same_v<T, bool>) {
             ImGui::Checkbox(label, &v);
@@ -106,11 +128,11 @@ public:
         }
     }
 
-    template<typename... Args>
-    static void DrawControlsVA(const char* const (&labels)[sizeof...(Args)], Args&... args) {
-        int i = 0;
-        (DrawControl(args, labels[i++]), ...);
-    }
+    // template<typename... Args>
+    // static void DrawControlsVA(const char* const (&labels)[sizeof...(Args)], Args&... args) {
+    //     int i = 0;
+    //     (DrawControl(args, labels[i++]), ...);
+    // }
 };
 
 inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::saved_time_left_map;
