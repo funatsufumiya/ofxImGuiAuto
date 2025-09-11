@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxImGuiAuto.h"
+#include "ofxImGuiAuto3.h"
 
 enum class MyChoise {
 	A,
