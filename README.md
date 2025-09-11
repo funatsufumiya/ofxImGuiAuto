@@ -70,6 +70,10 @@ public:
         IMGUI_AUTO(duration, 0.1f);
         IMGUI_AUTO(fadeOut, 0.1f);
         IMGUI_AUTO_SAVE_LOAD(save(), load(), "save", "load");
+
+        // or short-hand:
+        // IMGUI_AUTO_SAVE_LOAD(save(), load());
+
         ImGui::End();
     }
 };
