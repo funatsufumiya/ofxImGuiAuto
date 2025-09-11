@@ -8,6 +8,59 @@
 #include "magic_enum.hpp"
 
 class ofxImGuiAuto {
+protected:
+    struct ImGuiAutoVariant {
+        enum class Type {
+            TYPE_NONE,
+            TYPE_BOOL,
+            TYPE_FLOAT,
+            TYPE_INT,
+            TYPE_VEC2F,
+            TYPE_VEC3F,
+            TYPE_RECT,
+            TYPE_ENUM
+        };
+        union {
+            bool* b;
+            float* f;
+            int* i;
+            ofVec2f* v2;
+            ofVec3f* v3;
+            ofRectangle* r;
+            void* e; // keep enum as void*
+        } data = {};
+
+        // lvalue reference
+        ImGuiAutoVariant(bool& v)      : typ(Type::TYPE_BOOL),  _is_lvalue(true)  { data.b = &v; }
+        ImGuiAutoVariant(float& v)     : typ(Type::TYPE_FLOAT), _is_lvalue(true)  { data.f = &v; }
+        ImGuiAutoVariant(int& v)       : typ(Type::TYPE_INT),   _is_lvalue(true)  { data.i = &v; }
+        ImGuiAutoVariant(ofVec2f& v)   : typ(Type::TYPE_VEC2F), _is_lvalue(true)  { data.v2 = &v; }
+        ImGuiAutoVariant(ofVec3f& v)   : typ(Type::TYPE_VEC3F), _is_lvalue(true)  { data.v3 = &v; }
+        ImGuiAutoVariant(ofRectangle& v): typ(Type::TYPE_RECT), _is_lvalue(true)  { data.r = &v; }
+        template<typename T>
+        ImGuiAutoVariant(T& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
+            : typ(Type::TYPE_ENUM), _is_lvalue(true) { data.e = (void*)&v; }
+
+        // rvalue (const, temporary, etc.)
+        ImGuiAutoVariant(const bool&& v)      : typ(Type::TYPE_BOOL),  _is_lvalue(false)  { data.b = const_cast<bool*>(&v); }
+        ImGuiAutoVariant(const float&& v)     : typ(Type::TYPE_FLOAT), _is_lvalue(false)  { data.f = const_cast<float*>(&v); }
+        ImGuiAutoVariant(const int&& v)       : typ(Type::TYPE_INT),   _is_lvalue(false)  { data.i = const_cast<int*>(&v); }
+        ImGuiAutoVariant(const ofVec2f&& v)   : typ(Type::TYPE_VEC2F), _is_lvalue(false)  { data.v2 = const_cast<ofVec2f*>(&v); }
+        ImGuiAutoVariant(const ofVec3f&& v)   : typ(Type::TYPE_VEC3F), _is_lvalue(false)  { data.v3 = const_cast<ofVec3f*>(&v); }
+        ImGuiAutoVariant(const ofRectangle&& v): typ(Type::TYPE_RECT), _is_lvalue(false)  { data.r = const_cast<ofRectangle*>(&v); }
+        template<typename T>
+        ImGuiAutoVariant(const T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
+            : typ(Type::TYPE_ENUM), _is_lvalue(false) { data.e = (void*)&v; }
+
+        Type get_type() const { return typ; }
+        bool is_float() const { return typ == Type::TYPE_FLOAT; }
+        bool is_lvalue() const { return _is_lvalue; }
+
+    protected:
+        bool _is_lvalue = false;
+        Type typ = Type::TYPE_NONE;
+    };
+
 public:
     class SaveLoadButton {
     public:
@@ -137,17 +190,16 @@ public:
     template<typename... Args>
     static void DrawControlsVA(const char* const* labels, Args&&... args) {
         constexpr size_t N = sizeof...(Args);
-        std::vector<void*> arg_ptrs{ (void*)&args... };
-        std::vector<bool> is_float{ (std::is_same_v<std::remove_reference_t<Args>, float> ? true : false)... };
-        std::vector<bool> is_lvalue{ (std::is_lvalue_reference_v<Args> ? true : false)... };
+        std::vector<ImGuiAutoVariant> arg_variants{ ImGuiAutoVariant(args)... };
         size_t i = 0, label_idx = 0;
         while (i < N) {
-            if (is_lvalue[i]) {
-                float* var = static_cast<float*>(arg_ptrs[i]);
+            // if (arg_variants[i].is_lvalue() && arg_variants[i].is_float()) {
+            if (arg_variants[i].is_lvalue()) {
+                auto var = arg_variants[i].data.f;
                 size_t j = i + 1;
                 std::vector<float> params;
-                while (j < N && is_float[j] && !is_lvalue[j]) {
-                    params.push_back(*static_cast<float*>(arg_ptrs[j]));
+                while (j < N && arg_variants[j].is_float() && !arg_variants[j].is_lvalue()) {
+                    params.push_back(*arg_variants[j].data.f);
                     ++j;
                 }
                 if (params.empty()) {
@@ -156,6 +208,8 @@ public:
                     DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[label_idx++]);
                 } else if (params.size() == 2) {
                     DrawControl(std::make_tuple(std::ref(*var), params[0], params[1]), labels[label_idx++]);
+                } else if (params.size() == 3) {
+                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1], params[2]), labels[label_idx++]);
                 }
                 i = j;
             } else {

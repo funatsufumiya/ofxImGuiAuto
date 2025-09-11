@@ -17,7 +17,7 @@ void ofApp::draw(){
     ImGui::Begin("Test");
     IMGUI_AUTOS(
         size,
-        speed,
+        speed, 0.1f,
         choise,
         flag
     )
