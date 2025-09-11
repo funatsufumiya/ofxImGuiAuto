@@ -4,6 +4,7 @@
 #include "ofxImGui.h"
 #include <tuple>
 #include <string>
+#include <cctype>
 #include <map>
 #include "magic_enum.hpp"
 
@@ -200,25 +201,30 @@ public:
     static void DrawControlsVA(const char* labels_str, ImGuiAutoVariant* variants) {
         auto labels = SplitAndTrimLabels(labels_str);
         size_t N = labels.size();
-        size_t i = 0, label_idx = 0;
+        vector<bool> is_labels;
+        for(size_t i=0; i<N; ++i){
+            is_labels.push_back(is_label(labels[i]));
+        }
+
+        size_t i = 0;
         while (i < N) {
-            // if (arg_variants[i].is_lvalue() && arg_variants[i].is_float()) {
-            if (variants[i].is_lvalue()) {
+            if (is_labels[i]) {
+                ofLog() << "label: " << labels[i];
                 auto var = variants[i].data.f;
                 size_t j = i + 1;
                 std::vector<float> params;
-                while (j < N && variants[j].is_float() && !variants[j].is_lvalue()) {
+                while (j < N && !is_labels[j]) {
                     params.push_back(*variants[j].data.f);
                     ++j;
                 }
                 if (params.empty()) {
-                    DrawControl(*var, labels[label_idx++].c_str());
+                    DrawControl(*var, labels[i].c_str());
                 } else if (params.size() == 1) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[label_idx++].c_str());
+                    DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[i].c_str());
                 } else if (params.size() == 2) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1]), labels[label_idx++].c_str());
+                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1]), labels[i].c_str());
                 } else if (params.size() == 3) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1], params[2]), labels[label_idx++].c_str());
+                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1], params[2]), labels[i].c_str());
                 }
                 i = j;
             } else {
@@ -268,6 +274,14 @@ public:
                 result.push_back(item);
             }
             return result;
+        }
+
+        static bool is_label(const std::string& str) {
+            if (str.empty()) return false;
+            char c = str[0];
+            if (c == '\"' || c == '\'' || c == '.') return false;
+            if (std::isdigit(static_cast<unsigned char>(c))) return false;
+            return true;
         }
 };
 
