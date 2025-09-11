@@ -150,10 +150,11 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 
 // Save/Load button macro overloads
 #define IMGUI_AUTO_SAVE_LOAD_CHOOSER(_1,_2,_3,_4,NAME,...) NAME
+
 #define IMGUI_AUTO_SAVE_LOAD_2(saveFunc, loadFunc) \
-    if(ofxImGuiAuto::SaveLoadButton::Save("save")) { saveFunc; } \
-    if(ofxImGuiAuto::SaveLoadButton::Load("load")) { loadFunc; }
+    if(ofxImGuiAuto::SaveLoadButton::Save("Save")) { IMGUI_EXPAND(saveFunc); } \
+    if(ofxImGuiAuto::SaveLoadButton::Load("Load")) { IMGUI_EXPAND(loadFunc); }
 #define IMGUI_AUTO_SAVE_LOAD_4(saveFunc, loadFunc, saveLabel, loadLabel) \
-    if(ofxImGuiAuto::SaveLoadButton::Save(saveLabel)) { saveFunc; } \
-    if(ofxImGuiAuto::SaveLoadButton::Load(loadLabel)) { loadFunc; }
-#define IMGUI_AUTO_SAVE_LOAD(...) IMGUI_AUTO_SAVE_LOAD_CHOOSER(__VA_ARGS__, IMGUI_AUTO_SAVE_LOAD_4, unused, IMGUI_AUTO_SAVE_LOAD_2)(__VA_ARGS__)
+    if(ofxImGuiAuto::SaveLoadButton::Save(saveLabel)) { IMGUI_EXPAND(saveFunc); } \
+    if(ofxImGuiAuto::SaveLoadButton::Load(loadLabel)) { IMGUI_EXPAND(loadFunc); }
+#define IMGUI_AUTO_SAVE_LOAD(...) IMGUI_EXPAND(IMGUI_AUTO_SAVE_LOAD_CHOOSER(__VA_ARGS__, IMGUI_AUTO_SAVE_LOAD_4, unused, IMGUI_AUTO_SAVE_LOAD_2)(__VA_ARGS__))
