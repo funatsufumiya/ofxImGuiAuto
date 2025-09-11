@@ -2,7 +2,7 @@
 
 This addon provides macros named `IMGUI_AUTO`, `IMGUI_AUTOS`, `IMGUI_AUTO_SAVE_LOAD` that automatically generate ImGui DragXXX controls and Save/Load buttons.
 
-C++17 or higher is needed.
+C++17 or higher is required.
 
 Tested on oF v0.12.0 (win/mac)
 
