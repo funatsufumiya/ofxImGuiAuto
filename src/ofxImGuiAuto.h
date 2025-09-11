@@ -152,8 +152,8 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 #define IMGUI_AUTO_SAVE_LOAD_CHOOSER(_1,_2,_3,_4,NAME,...) NAME
 
 #define IMGUI_AUTO_SAVE_LOAD_2(saveFunc, loadFunc) \
-    if(ofxImGuiAuto::SaveLoadButton::Save("Save")) { IMGUI_EXPAND(saveFunc); } \
-    if(ofxImGuiAuto::SaveLoadButton::Load("Load")) { IMGUI_EXPAND(loadFunc); }
+    if(ofxImGuiAuto::SaveLoadButton::Save("save")) { IMGUI_EXPAND(saveFunc); } \
+    if(ofxImGuiAuto::SaveLoadButton::Load("load")) { IMGUI_EXPAND(loadFunc); }
 #define IMGUI_AUTO_SAVE_LOAD_4(saveFunc, loadFunc, saveLabel, loadLabel) \
     if(ofxImGuiAuto::SaveLoadButton::Save(saveLabel)) { IMGUI_EXPAND(saveFunc); } \
     if(ofxImGuiAuto::SaveLoadButton::Load(loadLabel)) { IMGUI_EXPAND(loadFunc); }
