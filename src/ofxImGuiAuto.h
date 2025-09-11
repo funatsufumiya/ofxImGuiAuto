@@ -136,6 +136,7 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 
 #define IMGUI_KV_EXPAND(...) IMGUI_EXPAND(IMGUI_GET_MACRO(__VA_ARGS__, IMGUI_KV14, IMGUI_KV13, IMGUI_KV12, IMGUI_KV11, IMGUI_KV10, IMGUI_KV9, IMGUI_KV8, IMGUI_KV7, IMGUI_KV6, IMGUI_KV5, IMGUI_KV4, IMGUI_KV3, IMGUI_KV2, IMGUI_KV1)(__VA_ARGS__))
 
+/// @brief IMGUI_AUTOS(var_a, var_b, var_c, ...)
 #define IMGUI_AUTOS(...) IMGUI_KV_EXPAND(__VA_ARGS__)
 
 // Helper macros for tuple creation (support zero or more args)
@@ -145,6 +146,7 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 #define IMGUI_AUTO_CHOOSER(_1, _2, NAME, ...) NAME
 #define IMGUI_AUTO_1(name) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name)), #name);
 #define IMGUI_AUTO_N(name, ...) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(__VA_ARGS__)), #name);
+/// @brief IMGUI_AUTO(var_a) or IMGUI_AUTO(var_a, param1, param2, ...)
 #define IMGUI_AUTO(...) IMGUI_EXPAND(IMGUI_AUTO_CHOOSER(__VA_ARGS__, IMGUI_AUTO_N, IMGUI_AUTO_1)(__VA_ARGS__))
 
 
@@ -157,4 +159,5 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 #define IMGUI_AUTO_SAVE_LOAD_4(saveFunc, loadFunc, saveLabel, loadLabel) \
     if(ofxImGuiAuto::SaveLoadButton::Save(saveLabel)) { IMGUI_EXPAND(saveFunc); } \
     if(ofxImGuiAuto::SaveLoadButton::Load(loadLabel)) { IMGUI_EXPAND(loadFunc); }
+/// @brief IMGUI_AUTO_SAVE_LOAD(save(), load()) or IMGUI_AUTO_SAVE_LOAD(save(), load(), "save", "load")
 #define IMGUI_AUTO_SAVE_LOAD(...) IMGUI_EXPAND(IMGUI_AUTO_SAVE_LOAD_CHOOSER(__VA_ARGS__, IMGUI_AUTO_SAVE_LOAD_4, unused, IMGUI_AUTO_SAVE_LOAD_2)(__VA_ARGS__))
