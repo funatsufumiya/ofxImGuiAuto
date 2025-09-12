@@ -146,7 +146,7 @@ void drawGui() {
 > If you have ***GUI flickering*** on your app, please read below.
 
 > [!NOTE]
->  `IMGUI_AUTO2()` macro string is parsed on first call in run-time, and cached statically. **This may make GUI flickering in some case**. 
+>  `IMGUI_AUTO2()` macro string is parsed on first call in run-time, and cached statically. **This may make GUI flickering in some special case**. 
 > 
 > If you won't cache it,
 > - use `IMGUI_AUTO2_NO_CACHE()` (short-hand: `IMGUI_AUTO2_NC()` ) macro instaed
