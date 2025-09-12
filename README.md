@@ -141,7 +141,10 @@ void drawGui() {
 |parameters|X (use `IMGUI_AUTO`)|O|
 |args limit|14|(infinite)|
 
-- Please not that `IMGUI_AUTO2` macro string is parsed on first call on realtime, and cached statically (with key `__FILE__` + `__LINE__`). If you won't cache it, please `#define IMGUI_AUTO_NO_CACHE` before `#include "ofxImGuiAuto.h"`.
+> [!NOTE]
+>  `IMGUI_AUTO2` macro string is parsed on first call in run-time, and cached statically (with key `__FILE__` + `__LINE__` .)
+> 
+> If you won't cache it, please `#define IMGUI_AUTO_NO_CACHE` before `#include "ofxImGuiAuto.h"`.
 
 ## Note: for save/load
 
