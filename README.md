@@ -139,7 +139,7 @@ void drawGui() {
 |-|-|-|
 |enum|O|X|
 |parameters|X (use `IMGUI_AUTO`)|O|
-|args limit|14|(infinite)|
+|args limit|14|- (infinite)|
 |runtime overhead|none|low|
 
 > [!WARNING]
