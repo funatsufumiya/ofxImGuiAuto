@@ -43,7 +43,7 @@ Tested on oF v0.12.0 (win/mac)
 
 ## Example
 
-### using IMGUI_AUTOS / IMGUI_AUTO (low overhead)
+### using IMGUI_AUTOS / IMGUI_AUTO
 
 ```cpp
 class MyApp : public ofBaseApp {
@@ -140,6 +140,7 @@ void drawGui() {
 |enum|O|X|
 |parameters|X (use `IMGUI_AUTO`)|O|
 |args limit|14|(infinite)|
+|runtime overhead|none|low|
 
 > [!NOTE]
 >  `IMGUI_AUTO2` macro string is parsed on first call in run-time, and cached statically (with key `__FILE__` + `__LINE__` .)
