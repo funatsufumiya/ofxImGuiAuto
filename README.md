@@ -154,7 +154,7 @@ void drawGui() {
 > - use `IMGUI_AUTOS2_NO_CACHE()` (short-hand: `IMGUI_AUTOS2_NC()` ) macro instaed
 > - or `#define IMGUI_AUTO_NO_CACHE` before `#include "ofxImGuiAuto.h"`.
 
-## Note: for save/load
+## for save/load
 
 You can use any serializations as you like. 
 
