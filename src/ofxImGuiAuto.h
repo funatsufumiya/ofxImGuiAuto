@@ -296,7 +296,6 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 /// @brief IMGUI_AUTOS(var_a, var_b, var_c, ...)
 #define IMGUI_AUTOS(...) IMGUI_KV_EXPAND(__VA_ARGS__)
 
-// Macro overload trick for MSVC: count args and select correct tuple macro
 #define IMGUI_AUTO_CHOOSER(_1, _2, NAME, ...) NAME
 #define IMGUI_AUTO_1(name) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name)), #name);
 #define IMGUI_AUTO_N(name, ...) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(__VA_ARGS__)), #name);
