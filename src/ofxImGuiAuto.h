@@ -181,11 +181,12 @@ public:
         } else if constexpr (std::is_same_v<T, ofVec3f>) {
             ImGui::DragFloat3(label, &v.x, std::get<I+1>(tup)...);
         } else if constexpr (std::is_same_v<T, ofColor>) {
-            float col[3] = { v.r / 255.0f, v.g / 255.0f, v.b / 255.0f };
-            if(ImGui::ColorEdit3(label, col)){
+            float col[4] = { v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f };
+            if(ImGui::ColorEdit4(label, col)){
                 v.r = col[0] * 255.0f;
                 v.g = col[1] * 255.0f;
                 v.b = col[2] * 255.0f;
+                v.a = col[3] * 255.0f;
             }
         } else if constexpr (std::is_same_v<T, ofRectangle>) {
             float rect[4] = { v.x, v.y, v.width, v.height };
