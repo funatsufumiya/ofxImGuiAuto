@@ -241,6 +241,14 @@ public:
     //     (DrawControl(args, labels[i++]), ...);
     // }
 
+    struct ControlParams {
+        float v_speed = 1.0f;
+        float v_min = 0.0f;
+        float v_max = 0.0f;
+        const char* format = "%.3f";
+        ImGuiSliderFlags flags = 0;
+    };
+
     static void DrawControlsVA(const char* labels_str, Variant* variants) {
         auto labels = SplitAndTrimLabels(labels_str);
         size_t N = labels.size();
@@ -255,11 +263,12 @@ public:
                 ofLog() << "label: " << labels[i];
                 Variant& v = variants[i];
                 size_t j = i + 1;
-                std::vector<float> params;
-                while (j < N && !is_labels[j]) {
-                    params.push_back(variants[j].rvalue.f);
-                    ++j;
-                }
+                ControlParams params;
+                if (j < N && !is_labels[j]) { params.v_speed = variants[j].rvalue.f; ++j; }
+                if (j < N && !is_labels[j]) { params.v_min   = variants[j].rvalue.f; ++j; }
+                if (j < N && !is_labels[j]) { params.v_max   = variants[j].rvalue.f; ++j; }
+                if (j < N && !is_labels[j]) { params.format  = variants[j].rvalue.s; ++j; }
+                if (j < N && !is_labels[j]) { params.flags   = variants[j].rvalue.i; ++j; }
                 switch (v.get_type()) {
                     case Variant::Type::TYPE_FLOAT:
                         callDrawControl(v.lvalue.f, params, labels[i].c_str());
@@ -280,13 +289,11 @@ public:
                         callDrawControl(v.lvalue.r, params, labels[i].c_str());
                         break;
                     case Variant::Type::TYPE_ENUM:
-                        // enums: treat as void* and cast to int* for DrawControl
                         callDrawControl(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());
                         break;
                     case Variant::Type::TYPE_CONST_CHAR:
                     case Variant::Type::TYPE_NONE:
                     default:
-                        // not supported for DrawControl
                         break;
                 }
                 i = j;
@@ -318,18 +325,10 @@ public:
             return true;
         }
 
-        template<typename T, typename... Args>
-        static void callDrawControl(T* v, const std::vector<float>& params, const char* label) {
+        template<typename T>
+        static void callDrawControl(T* v, const ControlParams& params, const char* label) {
             if (!v) return;
-            if (params.empty()) {
-                DrawControl(std::make_tuple(std::ref(*v)), label);
-            } else if (params.size() == 1) {
-                DrawControl(std::make_tuple(std::ref(*v), params[0]), label);
-            } else if (params.size() == 2) {
-                DrawControl(std::make_tuple(std::ref(*v), params[0], params[1]), label);
-            } else if (params.size() == 3) {
-                DrawControl(std::make_tuple(std::ref(*v), params[0], params[1], params[2]), label);
-            }
+            DrawControl(std::make_tuple(std::ref(*v), params.v_speed, params.v_min, params.v_max, params.format, params.flags), label);
         }
 };
 

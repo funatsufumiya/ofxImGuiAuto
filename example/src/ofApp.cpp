@@ -12,8 +12,13 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    ofPushStyle();
+    if(flag){
+        ofSetColor(255, 0, 0);
+    }
     ofDrawRectangle(100, 100, size.x, size.y);
     // ofDrawRectangle(100, 100, size.x, size.x);
+    ofPopStyle();
 
     gui.begin();
 
