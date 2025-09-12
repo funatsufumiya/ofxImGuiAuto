@@ -149,7 +149,7 @@ void drawGui() {
 >  `IMGUI_AUTO2()` macro string is parsed on first call in run-time, and cached statically. **This may make GUI flickering in some special case**. 
 > 
 > If you won't cache it,
-> - use `IMGUI_AUTO2_NO_CACHE()` (short-hand: `IMGUI_AUTO2_NC()` ) macro instaed
+> - use `IMGUI_AUTOS2_NO_CACHE()` (short-hand: `IMGUI_AUTOS2_NC()` ) macro instaed
 > - or `#define IMGUI_AUTO_NO_CACHE` before `#include "ofxImGuiAuto.h"`.
 
 ## Note: for save/load
