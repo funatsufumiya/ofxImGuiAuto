@@ -38,7 +38,9 @@ Tested on oF v0.12.0 (win/mac)
     - `bool` (as Checkbox)
     - `enum` (as Combo)
 
-### Example
+## Example
+
+### using IMGUI_AUTO
 
 ```cpp
 class MyApp : public ofBaseApp {
