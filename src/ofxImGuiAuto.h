@@ -162,10 +162,10 @@ public:
             }
         } else if constexpr (std::is_same_v<T, bool>) {
             ImGui::Checkbox(label, &v);
-        } else if constexpr (std::is_same_v<T, float>) {
-            ImGui::DragFloat(label, &v, std::get<I+1>(tup)...);
         } else if constexpr (std::is_same_v<T, int>) {
             ImGui::DragInt(label, &v, std::get<I+1>(tup)...);
+        } else if constexpr (std::is_same_v<T, float>) {
+            ImGui::DragFloat(label, &v, std::get<I+1>(tup)...);
         } else if constexpr (std::is_same_v<T, ofVec2f>) {
             ImGui::DragFloat2(label, &v.x, std::get<I+1>(tup)...);
         } else if constexpr (std::is_same_v<T, ofVec3f>) {
@@ -221,7 +221,7 @@ public:
                         callDrawControl(v.lvalue.r, params, labels[i].c_str());
                         break;
                     case Variant::Type::TYPE_ENUM:
-                        callDrawControl(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());
+                        callDrawControl<int>(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());
                         break;
                     case Variant::Type::TYPE_CONST_CHAR:
                     case Variant::Type::TYPE_NONE:
