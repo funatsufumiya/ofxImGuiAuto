@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxImGuiAuto3.h"
+#include "ofxImGuiAuto.h"
 
 enum class MyChoise {
 	A,
@@ -29,8 +29,8 @@ class ofApp : public ofBaseApp{
 
 		ofxImGui::Gui gui;
 
-		ofVec2f size;
-		float speed;
-		MyChoise choise;
+		ofVec2f size = ofVec2f(100, 100);
+		float angle;
 		bool flag;
+		MyChoise choise;
 };

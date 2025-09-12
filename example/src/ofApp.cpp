@@ -13,22 +13,29 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofPushStyle();
+    ofPushMatrix();
     if(flag){
         ofSetColor(255, 0, 0);
     }
-    ofDrawRectangle(100, 100, size.x, size.y);
+    ofTranslate(100, 100);
+    ofRotateDeg(angle);
+    ofDrawRectangle(0, 0, size.x, size.y);
     // ofDrawRectangle(100, 100, size.x, size.x);
+    ofPopMatrix();
     ofPopStyle();
 
     gui.begin();
 
     ImGui::Begin("Test");
-    IMGUI_AUTOS(
+
+    IMGUI_AUTOS2(
         size,
-        speed, 0.1f,
-        choise,
+        angle, 0.1f,
         flag
     );
+
+    IMGUI_AUTO(choise);
+
     ImGui::End();
 
     gui.end();
