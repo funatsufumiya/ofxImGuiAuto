@@ -11,9 +11,24 @@
 class ofxImGuiAuto {
 
 public:
-    struct ImGuiAutoVariant {
+    // struct Any {
+    //     void* ptr = nullptr;
+
+    //     Any() = default;
+
+    //     template<typename T>
+    //     Any(T& v) : ptr(static_cast<void*>(&v)) {}
+
+    //     template<typename T>
+    //     T& get() const {
+    //         return *static_cast<T*>(ptr);
+    //     }
+    // };
+
+    struct Variant {
         enum class Type {
             TYPE_NONE,
+            TYPE_CONST_CHAR,
             TYPE_BOOL,
             TYPE_FLOAT,
             TYPE_INT,
@@ -22,53 +37,68 @@ public:
             TYPE_RECT,
             TYPE_ENUM
         };
-        // for l_value
-        union {
+        union LValue {
+            const char** s;
             bool* b;
             float* f;
             int* i;
             ofVec2f* v2;
             ofVec3f* v3;
             ofRectangle* r;
-            void* e; // keep enum as void*
-        } data = {};
-        // rvalue value keep
-        float f_value = 0.0f;
-        int i_value = 0;
-        bool b_value = false;
-        ofVec2f v2_value;
-        ofVec3f v3_value;
-        ofRectangle r_value;
+            void* e; // enum
 
-        // lvalue reference
-        ImGuiAutoVariant(bool& v)      : typ(Type::TYPE_BOOL),  _is_lvalue(true)  { data.b = &v; }
-        ImGuiAutoVariant(float& v)     : typ(Type::TYPE_FLOAT), _is_lvalue(true)  { data.f = &v; }
-        ImGuiAutoVariant(int& v)       : typ(Type::TYPE_INT),   _is_lvalue(true)  { data.i = &v; }
-        ImGuiAutoVariant(ofVec2f& v)   : typ(Type::TYPE_VEC2F), _is_lvalue(true)  { data.v2 = &v; }
-        ImGuiAutoVariant(ofVec3f& v)   : typ(Type::TYPE_VEC3F), _is_lvalue(true)  { data.v3 = &v; }
-        ImGuiAutoVariant(ofRectangle& v): typ(Type::TYPE_RECT), _is_lvalue(true)  { data.r = &v; }
-        template<typename T>
-        ImGuiAutoVariant(T& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
-            : typ(Type::TYPE_ENUM), _is_lvalue(true) { data.e = (void*)&v; }
+            LValue() : s(nullptr) {}
+            ~LValue() {}
+        } lvalue;
 
-        // rvalue (temporary, etc.)
-        ImGuiAutoVariant(bool&& v)      : typ(Type::TYPE_BOOL),  _is_lvalue(false), b_value(v)  { data.b = &b_value; }
-        ImGuiAutoVariant(float&& v)     : typ(Type::TYPE_FLOAT), _is_lvalue(false), f_value(v)  { data.f = &f_value; }
-        ImGuiAutoVariant(int&& v)       : typ(Type::TYPE_INT),   _is_lvalue(false), i_value(v)  { data.i = &i_value; }
-        ImGuiAutoVariant(ofVec2f&& v)   : typ(Type::TYPE_VEC2F), _is_lvalue(false), v2_value(v) { data.v2 = &v2_value; }
-        ImGuiAutoVariant(ofVec3f&& v)   : typ(Type::TYPE_VEC3F), _is_lvalue(false), v3_value(v) { data.v3 = &v3_value; }
-        ImGuiAutoVariant(ofRectangle&& v): typ(Type::TYPE_RECT), _is_lvalue(false), r_value(v)  { data.r = &r_value; }
+        union RValue {
+            const char* s;
+            bool b;
+            float f;
+            int i;
+            ofVec2f v2;
+            ofVec3f v3;
+            ofRectangle r;
+
+            RValue() : s(nullptr) {}
+            ~RValue() {}
+        } rvalue;
+
+        Type typ = Type::TYPE_NONE;
+
+        // lvalue constructors
+        Variant(const char*& v)         : typ(Type::TYPE_CONST_CHAR), _is_rvalue(false) { lvalue.s = &v; }
+        Variant(bool& v)                : typ(Type::TYPE_BOOL), _is_rvalue(false)       { lvalue.b = &v; }
+        Variant(float& v)               : typ(Type::TYPE_FLOAT), _is_rvalue(false)      { lvalue.f = &v; }
+        Variant(int& v)                 : typ(Type::TYPE_INT), _is_rvalue(false)        { lvalue.i = &v; }
+        Variant(ofVec2f& v)             : typ(Type::TYPE_VEC2F), _is_rvalue(false)      { lvalue.v2 = &v; }
+        Variant(ofVec3f& v)             : typ(Type::TYPE_VEC3F), _is_rvalue(false)      { lvalue.v3 = &v; }
+        Variant(ofRectangle& v)         : typ(Type::TYPE_RECT), _is_rvalue(false)       { lvalue.r = &v; }
         template<typename T>
-        ImGuiAutoVariant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
-            : typ(Type::TYPE_ENUM), _is_lvalue(false) { data.e = (void*)&v; }
+        Variant(T& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
+            : typ(Type::TYPE_ENUM), _is_rvalue(false)                                   { lvalue.e = (void*)&v; }
+
+        // rvalue constructors
+        Variant(const char*&& v)          : typ(Type::TYPE_CONST_CHAR), _is_rvalue(true)  { rvalue.s = v; }
+        Variant(bool&& v)                 : typ(Type::TYPE_BOOL), _is_rvalue(true)        { rvalue.b = v; }
+        Variant(float&& v)                : typ(Type::TYPE_FLOAT), _is_rvalue(true)       { rvalue.f = v; }
+        Variant(int&& v)                  : typ(Type::TYPE_INT), _is_rvalue(true)         { rvalue.i = v; }
+        Variant(ofVec2f&& v)              : typ(Type::TYPE_VEC2F), _is_rvalue(true)       { rvalue.v2 = v; }
+        Variant(ofVec3f&& v)              : typ(Type::TYPE_VEC3F), _is_rvalue(true)       { rvalue.v3 = v; }
+        Variant(ofRectangle&& v)          : typ(Type::TYPE_RECT), _is_rvalue(true)        { rvalue.r = v; }
+        template<typename T>
+        Variant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
+            : typ(Type::TYPE_ENUM), _is_rvalue(true)                                    { lvalue.e = nullptr; }
+
+        ~Variant() {} // Explicit destructor to satisfy union requirements
 
         Type get_type() const { return typ; }
         bool is_float() const { return typ == Type::TYPE_FLOAT; }
-        bool is_lvalue() const { return _is_lvalue; }
+        bool is_lvalue() const { return !_is_rvalue; }
+        bool is_rvalue() const { return _is_rvalue; }
 
     protected:
-        bool _is_lvalue = false;
-        Type typ = Type::TYPE_NONE;
+        bool _is_rvalue = false;
     };
 
     class SaveLoadButton {
@@ -198,7 +228,7 @@ public:
 
     template<typename... Args>
     // static void DrawControlsVA(const char* const* labels, Args&&... args) {
-    static void DrawControlsVA(const char* labels_str, ImGuiAutoVariant* variants) {
+    static void DrawControlsVA(const char* labels_str, Variant* variants) {
         auto labels = SplitAndTrimLabels(labels_str);
         size_t N = labels.size();
         vector<bool> is_labels;
@@ -210,11 +240,11 @@ public:
         while (i < N) {
             if (is_labels[i]) {
                 ofLog() << "label: " << labels[i];
-                auto var = variants[i].data.f;
+                auto var = variants[i].lvalue.f;
                 size_t j = i + 1;
                 std::vector<float> params;
                 while (j < N && !is_labels[j]) {
-                    params.push_back(*variants[j].data.f);
+                    params.push_back(variants[j].rvalue.f);
                     ++j;
                 }
                 if (params.empty()) {
@@ -232,35 +262,6 @@ public:
             }
         }
     }
-
-    // template<typename... Args>
-    // static void DrawControlsVA(const char* const* labels, Args&&... args) {
-    //     constexpr size_t N = sizeof...(Args);
-    //     ImGuiAutoAny anys[N] = { ImGuiAutoAny(std::forward<Args>(args))... };
-    //     size_t i = 0;
-    //     auto args_tuple = std::forward_as_tuple(std::forward<Args>(args)...);
-    //     while (i < N) {
-    //         if (anys[i].is_lvalue) {
-    //             size_t j = i + 1;
-    //             while (j < N && !anys[j].is_lvalue) ++j;
-    //             if (j == i + 1) {
-    //                 auto& ref = *static_cast<typename std::remove_reference<decltype(std::get<i>(args_tuple))>::type*>(anys[i].ptr);
-    //                 DrawControl(ref, labels[i]);
-    //             } else {
-    //                 auto tuple_call = [&](auto&&... params) {
-    //                     auto& ref = *static_cast<typename std::remove_reference<decltype(std::get<i>(args_tuple))>::type*>(anys[i].ptr);
-    //                     DrawControl(std::tuple_cat(std::make_tuple(std::ref(ref)), std::make_tuple(params...)), labels[i]);
-    //                 };
-    //                 std::apply([&](auto&&... all_args) {
-    //                     tuple_call(std::get<i+1>(args_tuple), std::get<i+2>(args_tuple), std::get<i+3>(args_tuple), std::get<i+4>(args_tuple), std::get<i+5>(args_tuple), std::get<i+6>(args_tuple), std::get<i+7>(args_tuple), std::get<i+8>(args_tuple), std::get<i+9>(args_tuple));
-    //                 }, args_tuple);
-    //             }
-    //             i = j;
-    //         } else {
-    //             ++i;
-    //         }
-    //     }
-    // }
 
     protected:
         static std::vector<std::string> SplitAndTrimLabels(const char* labels) {
@@ -291,7 +292,7 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 
 #define IMGUI_AUTOS(...) [&](){ \
     const char* labels_str = #__VA_ARGS__; \
-    ofxImGuiAuto::ImGuiAutoVariant variants[] = {__VA_ARGS__}; \
+    ofxImGuiAuto::Variant variants[] = {__VA_ARGS__}; \
     ofxImGuiAuto::DrawControlsVA(labels_str, variants); \
 }()
 
