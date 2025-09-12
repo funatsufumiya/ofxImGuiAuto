@@ -15,7 +15,7 @@ void drawGui() {
         duration, 0.1f,
         fadeOut, 0.1f
     );
-    IMGUI_AUTO(your_enum) // Combo
+    IMGUI_AUTO(your_enum); // Combo
     IMGUI_AUTO_SAVE_LOAD(save(), load());
     ImGui::End();
 }
