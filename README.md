@@ -142,7 +142,7 @@ void drawGui() {
 |args limit|14|- (infinite)|
 |runtime overhead|none|low|
 
-[^1]: rvalue only supported (lvalue = named value is treated as a label). If you want to use variable for parameter value, use `IMGUI_AUTO` or `IMGUI_AUTOS` instead.
+[^1]: rvalue only supported (lvalue = named value is treated as a label). If you want to use variable for parameter value (speed/min/max/flags), use `IMGUI_AUTO` or `IMGUI_AUTOS` instead.
 
 > [!WARNING]
 > If you have ***GUI flickering*** when using `IMGUI_AUTO2()` on your app, please read below.
