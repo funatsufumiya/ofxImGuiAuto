@@ -7,6 +7,7 @@
 #include <cctype>
 #include <map>
 #include "magic_enum.hpp"
+#include <typeindex>
 
 class ofxImGuiAuto {
 
@@ -65,6 +66,7 @@ public:
         } rvalue;
 
         Type typ = Type::TYPE_NONE;
+        std::type_index enum_type = typeid(void);
 
         // lvalue constructors
         Variant(const char*& v)         : typ(Type::TYPE_CONST_CHAR), _is_rvalue(false) { lvalue.s = &v; }
@@ -76,7 +78,7 @@ public:
         Variant(ofRectangle& v)         : typ(Type::TYPE_RECT), _is_rvalue(false)       { lvalue.r = &v; }
         template<typename T>
         Variant(T& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
-            : typ(Type::TYPE_ENUM), _is_rvalue(false)                                   { lvalue.e = (void*)&v; }
+            : typ(Type::TYPE_ENUM), _is_rvalue(false), enum_type(typeid(T))            { lvalue.e = (void*)&v; }
 
         // rvalue constructors
         Variant(const char*&& v)          : typ(Type::TYPE_CONST_CHAR), _is_rvalue(true)  { rvalue.s = v; }
@@ -88,7 +90,7 @@ public:
         Variant(ofRectangle&& v)          : typ(Type::TYPE_RECT), _is_rvalue(true)        { rvalue.r = v; }
         template<typename T>
         Variant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
-            : typ(Type::TYPE_ENUM), _is_rvalue(true)                                    { lvalue.e = nullptr; }
+            : typ(Type::TYPE_ENUM), _is_rvalue(true), enum_type(typeid(T))             { lvalue.e = nullptr; }
 
         ~Variant() {} // Explicit destructor to satisfy union requirements
 
@@ -96,6 +98,7 @@ public:
         bool is_float() const { return typ == Type::TYPE_FLOAT; }
         bool is_lvalue() const { return !_is_rvalue; }
         bool is_rvalue() const { return _is_rvalue; }
+        const std::type_index& get_enum_type() const { return enum_type; }
 
     protected:
         bool _is_rvalue = false;
@@ -238,12 +241,10 @@ public:
     //     (DrawControl(args, labels[i++]), ...);
     // }
 
-    template<typename... Args>
-    // static void DrawControlsVA(const char* const* labels, Args&&... args) {
     static void DrawControlsVA(const char* labels_str, Variant* variants) {
         auto labels = SplitAndTrimLabels(labels_str);
         size_t N = labels.size();
-        vector<bool> is_labels;
+        std::vector<bool> is_labels;
         for(size_t i=0; i<N; ++i){
             is_labels.push_back(is_label(labels[i]));
         }
@@ -252,21 +253,41 @@ public:
         while (i < N) {
             if (is_labels[i]) {
                 ofLog() << "label: " << labels[i];
-                auto var = variants[i].lvalue.f;
+                Variant& v = variants[i];
                 size_t j = i + 1;
                 std::vector<float> params;
                 while (j < N && !is_labels[j]) {
                     params.push_back(variants[j].rvalue.f);
                     ++j;
                 }
-                if (params.empty()) {
-                    DrawControl(std::make_tuple(std::ref(*var)), labels[i].c_str());
-                } else if (params.size() == 1) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[i].c_str());
-                } else if (params.size() == 2) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1]), labels[i].c_str());
-                } else if (params.size() == 3) {
-                    DrawControl(std::make_tuple(std::ref(*var), params[0], params[1], params[2]), labels[i].c_str());
+                switch (v.get_type()) {
+                    case Variant::Type::TYPE_FLOAT:
+                        callDrawControl(v.lvalue.f, params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_INT:
+                        callDrawControl(v.lvalue.i, params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_BOOL:
+                        callDrawControl(v.lvalue.b, params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_VEC2F:
+                        callDrawControl(v.lvalue.v2, params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_VEC3F:
+                        callDrawControl(v.lvalue.v3, params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_RECT:
+                        callDrawControl(v.lvalue.r, params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_ENUM:
+                        // enums: treat as void* and cast to int* for DrawControl
+                        callDrawControl(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_CONST_CHAR:
+                    case Variant::Type::TYPE_NONE:
+                    default:
+                        // not supported for DrawControl
+                        break;
                 }
                 i = j;
             } else {
@@ -295,6 +316,20 @@ public:
             if (c == '\"' || c == '\'' || c == '.') return false;
             if (std::isdigit(static_cast<unsigned char>(c))) return false;
             return true;
+        }
+
+        template<typename T, typename... Args>
+        static void callDrawControl(T* v, const std::vector<float>& params, const char* label) {
+            if (!v) return;
+            if (params.empty()) {
+                DrawControl(std::make_tuple(std::ref(*v)), label);
+            } else if (params.size() == 1) {
+                DrawControl(std::make_tuple(std::ref(*v), params[0]), label);
+            } else if (params.size() == 2) {
+                DrawControl(std::make_tuple(std::ref(*v), params[0], params[1]), label);
+            } else if (params.size() == 3) {
+                DrawControl(std::make_tuple(std::ref(*v), params[0], params[1], params[2]), label);
+            }
         }
 };
 

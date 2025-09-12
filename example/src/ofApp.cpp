@@ -12,8 +12,8 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    // ofDrawRectangle(100, 100, size.x, size.y);
-    ofDrawRectangle(100, 100, size.x, size.x);
+    ofDrawRectangle(100, 100, size.x, size.y);
+    // ofDrawRectangle(100, 100, size.x, size.x);
 
     gui.begin();
 
