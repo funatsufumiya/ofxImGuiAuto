@@ -28,13 +28,15 @@ void ofApp::draw(){
 
     ImGui::Begin("Test");
 
-    IMGUI_AUTOS2(
-        size, 1.0f, 10.0f, 1000.0f, "%.0f",
-        angle, 0.1f,
-        flag
-    );
+    // IMGUI_AUTOS2(
+    //     size, 1.0f, 10.0f, 1000.0f, "%.0f",
+    //     angle, 0.1f,
+    //     flag,
+    // );
 
     IMGUI_AUTO(choise);
+
+    IMGUI_AUTO(size, 1.0f, 10.0f, 1000.0f, "%.0f")
 
     ImGui::End();
 

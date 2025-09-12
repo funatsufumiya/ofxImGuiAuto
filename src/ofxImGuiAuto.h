@@ -296,11 +296,14 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 /// @brief IMGUI_AUTOS(var_a, var_b, var_c, ...)
 #define IMGUI_AUTOS(...) IMGUI_KV_EXPAND(__VA_ARGS__)
 
-#define IMGUI_AUTO_CHOOSER(_1, _2, NAME, ...) NAME
+#define IMGUI_AUTO_CHOOSER(_1,_2,_3,_4,_5,NAME,...) NAME
 #define IMGUI_AUTO_1(name) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name)), #name);
-#define IMGUI_AUTO_N(name, ...) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(__VA_ARGS__)), #name);
+#define IMGUI_AUTO_2(name, p1) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(p1)), #name);
+#define IMGUI_AUTO_3(name, p1, p2) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(p1), IMGUI_EXPAND(p2)), #name);
+#define IMGUI_AUTO_4(name, p1, p2, p3) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(p1), IMGUI_EXPAND(p2), IMGUI_EXPAND(p3)), #name);
+#define IMGUI_AUTO_5(name, p1, p2, p3, p4) ofxImGuiAuto::DrawControl(std::make_tuple(std::ref(name), IMGUI_EXPAND(p1), IMGUI_EXPAND(p2), IMGUI_EXPAND(p3), IMGUI_EXPAND(p4)), #name);
 /// @brief IMGUI_AUTO(var_a) or IMGUI_AUTO(var_a, param1, param2, ...)
-#define IMGUI_AUTO(...) IMGUI_EXPAND(IMGUI_AUTO_CHOOSER(__VA_ARGS__, IMGUI_AUTO_N, IMGUI_AUTO_1)(__VA_ARGS__))
+#define IMGUI_AUTO(...) IMGUI_EXPAND(IMGUI_AUTO_CHOOSER(__VA_ARGS__, IMGUI_AUTO_5, IMGUI_AUTO_4, IMGUI_AUTO_3, IMGUI_AUTO_2, IMGUI_AUTO_1)(__VA_ARGS__))
 
 // Save/Load button macro overloads
 #define IMGUI_AUTO_SAVE_LOAD_CHOOSER(_1,_2,_3,_4,NAME,...) NAME
