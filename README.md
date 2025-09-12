@@ -141,6 +141,7 @@ void drawGui() {
 |enum|O|X|
 |parameters|X (use `IMGUI_AUTO`)|O|
 |overhead|low|middle|
+|args limit|14|(infinite)|
 
 ## Note: for save/load
 
