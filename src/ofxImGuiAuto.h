@@ -132,42 +132,7 @@ public:
 
     template<typename T>
     static void DrawControl(T& value, const char* label) {
-        if constexpr (std::is_enum_v<T>) {
-            auto names = magic_enum::enum_names<T>();
-            int current = static_cast<int>(value);
-            auto values = magic_enum::enum_values<T>();
-            auto currentName = magic_enum::enum_name(value);
-            if (ImGui::BeginCombo(label, std::string(currentName).c_str())) {
-                for (int i = 0; i < names.size(); i++) {
-                    bool is_selected = (value == values[i]);
-                    if (ImGui::Selectable(std::string(names[i]).c_str(), is_selected)) {
-                        value = values[i];
-                    }
-                    if (is_selected) {
-                        ImGui::SetItemDefaultFocus();
-                    }
-                }
-                ImGui::EndCombo();
-            }
-        } else if constexpr (std::is_same_v<T, bool>) {
-            ImGui::Checkbox(label, &value);
-        } else if constexpr (std::is_same_v<T, float>) {
-            ImGui::DragFloat(label, &value);
-        } else if constexpr (std::is_same_v<T, int>) {
-            ImGui::DragInt(label, &value);
-        } else if constexpr (std::is_same_v<T, ofVec2f>) {
-            ImGui::DragFloat2(label, &value.x);
-        } else if constexpr (std::is_same_v<T, ofVec3f>) {
-            ImGui::DragFloat3(label, &value.x);
-        } else if constexpr (std::is_same_v<T, ofRectangle>) {
-            float rect[4] = { value.x, value.y, value.width, value.height };
-            if (ImGui::DragFloat4(label, rect)) {
-                value.x = rect[0];
-                value.y = rect[1];
-                value.width = rect[2];
-                value.height = rect[3];
-            }
-        }
+        DrawControl(std::make_tuple(std::ref(value)), label);
     }
 
     template<typename T, typename... Args>
