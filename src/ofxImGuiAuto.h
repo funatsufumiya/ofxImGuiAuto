@@ -8,6 +8,7 @@
 #include <typeindex>
 #include <cctype>
 #include <optional>
+#include <functional>
 #include "magic_enum.hpp"
 
 #define IMGUI_AUTO_CACHE_PASING_RESULT
@@ -202,7 +203,7 @@ public:
         }
     }
 
-    static void DrawControlsVA(const char* labels_str, Variant* variants, std::optional<std::string_view> cache_key = std::nullopt) {
+    static void DrawControlsVA(const char* labels_str, Variant* variants, std::optional<size_t> cache_key = std::nullopt) {
         std::vector<std::string> labels;
 
         #if defined(IMGUI_AUTO_CACHE_PASING_RESULT) && !defined(IMGUI_AUTO_NO_CACHE)
@@ -298,11 +299,11 @@ public:
     }
 
     protected:
-        static std::map<std::string_view, std::vector<std::string>>& GetLabelCache() {
-            static std::map<std::string_view, std::vector<std::string>> cache;
+        static std::map<size_t, std::vector<std::string>>& GetLabelCache() {
+            static std::map<size_t, std::vector<std::string>> cache;
             return cache;
         }
-        static std::vector<std::string> SplitAndTrimLabelsCached(const char* labels, std::string_view cache_key) {
+        static std::vector<std::string> SplitAndTrimLabelsCached(const char* labels, size_t cache_key) {
             auto& cache = GetLabelCache();
             auto it = cache.find(cache_key);
             if (it != cache.end()) return it->second;
@@ -351,7 +352,7 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 /// @brief IMGUI_AUTOS2(var_a, param1, param2, var_b, var_c, param1, ...)
 #define IMGUI_AUTOS2(...) [&](){ \
     const char* labels_str = #__VA_ARGS__; \
-    const std::string cache_key = std::string(__FILE__) + to_string(__LINE__); \
+    const size_t cache_key = std::hash<const char*>()(labels_str); \
     ofxImGuiAuto::Variant variants[] = {__VA_ARGS__}; \
     ofxImGuiAuto::DrawControlsVA(labels_str, variants, cache_key); \
 }();
