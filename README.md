@@ -37,6 +37,7 @@ Tested on oF v0.12.0 (win/mac)
     - `ofVec2f`
     - `ofVec3f`
     - `ofRectangle`
+    - `ofColor`
     - `bool` (as Checkbox)
     - `enum` (as Combo)
 
