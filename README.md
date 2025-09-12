@@ -133,6 +133,13 @@ void drawGui() {
 - enum is treated as int (not becomes Combo)
 - runtime overhead (a little for parsing string on runtime)
 
+## Note: for save/load
+
+You can use any serializations as you like. 
+
+I recommend [ofxJsonUtils](https://github.com/2bbb/ofxJsonUtils) and [ofxJsonUtilsUtils](https://github.com/nariakiiwatani/ofxjsonutilsutils).
+
+ofxJsonUtilsUtils's `JSON_FUNCS` syntax will fit well `IMGUI_AUTOS` or `IMGUI_AUTOS2`.
 
 ## License
 
