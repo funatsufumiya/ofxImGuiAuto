@@ -197,7 +197,7 @@ public:
         size_t i = 0;
         while (i < N) {
             if (is_labels[i]) {
-                ofLog() << "label: " << labels[i];
+                // ofLog() << "label: " << labels[i];
                 Variant& v = variants[i];
                 size_t j = i + 1;
                 ControlParams params;
