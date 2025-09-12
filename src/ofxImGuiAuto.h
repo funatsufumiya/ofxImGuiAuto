@@ -206,6 +206,8 @@ public:
                             params.v_speed = variants[j].rvalue.f;
                         } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
                             params.v_speed = static_cast<float>(variants[j].rvalue.d);
+                        } else if (variants[j].get_type() == Variant::Type::TYPE_INT) {
+                            params.v_speed = static_cast<float>(variants[j].rvalue.i);
                         }
                         ++j;
                     }
@@ -214,6 +216,8 @@ public:
                             params.v_min = variants[j].rvalue.f;
                         } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
                             params.v_min = static_cast<float>(variants[j].rvalue.d);
+                        } else if (variants[j].get_type() == Variant::Type::TYPE_INT) {
+                            params.v_min = static_cast<float>(variants[j].rvalue.i);
                         }
                         ++j;
                     }
@@ -222,6 +226,8 @@ public:
                             params.v_max = variants[j].rvalue.f;
                         } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
                             params.v_max = static_cast<float>(variants[j].rvalue.d);
+                        } else if (variants[j].get_type() == Variant::Type::TYPE_INT) {
+                            params.v_max = static_cast<float>(variants[j].rvalue.i);
                         }
                         ++j;
                     }
