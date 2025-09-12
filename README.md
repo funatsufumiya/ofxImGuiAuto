@@ -1,5 +1,26 @@
 # ofxImGuiAuto
 
+```cpp
+void drawGui() {
+    ImGui::Begin("My Controls");
+    IMGUI_AUTOS2(
+        position,
+        size,
+        scale,
+        offset,
+        baseSize,
+        enabled,
+        speed, 0.1f,
+        fadeIn, 0.1f,
+        duration, 0.1f,
+        fadeOut, 0.1f
+    );
+    IMGUI_AUTO(your_enum) // Combo
+    IMGUI_AUTO_SAVE_LOAD(save(), load());
+    ImGui::End();
+}
+```
+
 This addon provides macros named `IMGUI_AUTO`, `IMGUI_AUTOS`, `IMGUI_AUTOS2`, `IMGUI_AUTO_SAVE_LOAD` that automatically generate ImGui DragXXX controls and Save/Load buttons.
 
 C++17 or higher is required.
