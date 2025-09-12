@@ -137,8 +137,8 @@ void drawGui() {
 
 ||IMGUI_AUTOS|IMGUI_AUTOS2
 |-|-|-|
-|enum|O|X|
-|parameters|X (use `IMGUI_AUTO`)|O [^1]|
+|enum|:white_check_mark:|:x:|
+|parameters|:x: (use `IMGUI_AUTO`)|:white_check_mark: [^1]|
 |args limit|14|- (infinite)|
 |runtime overhead|none|low|
 
