@@ -134,7 +134,7 @@ void drawGui() {
 ### IMGUI_AUTOS2 Limitations
 
 - enum is treated as int (not becomes Combo)
-- runtime overhead (parsing string on runtime, on every frame)
+- runtime overhead (to parse given macro string on runtime, at every frame)
 
 ||IMGUI_AUTOS|IMGUI_AUTOS2
 |-|-|-|
