@@ -24,6 +24,7 @@ public:
             TYPE_NONE,
             TYPE_CONST_CHAR,
             TYPE_BOOL,
+            TYPE_DOUBLE,
             TYPE_FLOAT,
             TYPE_INT,
             TYPE_VEC2F,
@@ -35,6 +36,7 @@ public:
             const char** s;
             bool* b;
             float* f;
+            double* d;
             int* i;
             ofVec2f* v2;
             ofVec3f* v3;
@@ -49,6 +51,7 @@ public:
             const char* s;
             bool b;
             float f;
+            double d;
             int i;
             ofVec2f v2;
             ofVec3f v3;
@@ -65,6 +68,7 @@ public:
         Variant(const char*& v)         : typ(Type::TYPE_CONST_CHAR), _is_rvalue(false) { lvalue.s = &v; }
         Variant(bool& v)                : typ(Type::TYPE_BOOL), _is_rvalue(false)       { lvalue.b = &v; }
         Variant(float& v)               : typ(Type::TYPE_FLOAT), _is_rvalue(false)      { lvalue.f = &v; }
+        Variant(double& v)               : typ(Type::TYPE_DOUBLE), _is_rvalue(false)      { lvalue.d = &v; }
         Variant(int& v)                 : typ(Type::TYPE_INT), _is_rvalue(false)        { lvalue.i = &v; }
         Variant(ofVec2f& v)             : typ(Type::TYPE_VEC2F), _is_rvalue(false)      { lvalue.v2 = &v; }
         Variant(ofVec3f& v)             : typ(Type::TYPE_VEC3F), _is_rvalue(false)      { lvalue.v3 = &v; }
@@ -77,6 +81,7 @@ public:
         Variant(const char*&& v)          : typ(Type::TYPE_CONST_CHAR), _is_rvalue(true)  { rvalue.s = v; }
         Variant(bool&& v)                 : typ(Type::TYPE_BOOL), _is_rvalue(true)        { rvalue.b = v; }
         Variant(float&& v)                : typ(Type::TYPE_FLOAT), _is_rvalue(true)       { rvalue.f = v; }
+        Variant(double&& v)                : typ(Type::TYPE_DOUBLE), _is_rvalue(true)       { rvalue.d = v; }
         Variant(int&& v)                  : typ(Type::TYPE_INT), _is_rvalue(true)         { rvalue.i = v; }
         Variant(ofVec2f&& v)              : typ(Type::TYPE_VEC2F), _is_rvalue(true)       { rvalue.v2 = v; }
         Variant(ofVec3f&& v)              : typ(Type::TYPE_VEC3F), _is_rvalue(true)       { rvalue.v3 = v; }
@@ -196,9 +201,30 @@ public:
                 Variant& v = variants[i];
                 size_t j = i + 1;
                 ControlParams params;
-                if (j < N && !is_labels[j]) { params.v_speed = variants[j].rvalue.f; ++j; }
-                if (j < N && !is_labels[j]) { params.v_min   = variants[j].rvalue.f; ++j; }
-                if (j < N && !is_labels[j]) { params.v_max   = variants[j].rvalue.f; ++j; }
+                    if (j < N && !is_labels[j]) {
+                        if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
+                            params.v_speed = variants[j].rvalue.f;
+                        } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
+                            params.v_speed = static_cast<float>(variants[j].rvalue.d);
+                        }
+                        ++j;
+                    }
+                    if (j < N && !is_labels[j]) {
+                        if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
+                            params.v_min = variants[j].rvalue.f;
+                        } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
+                            params.v_min = static_cast<float>(variants[j].rvalue.d);
+                        }
+                        ++j;
+                    }
+                    if (j < N && !is_labels[j]) {
+                        if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
+                            params.v_max = variants[j].rvalue.f;
+                        } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
+                            params.v_max = static_cast<float>(variants[j].rvalue.d);
+                        }
+                        ++j;
+                    }
                 if (j < N && !is_labels[j]) { params.format  = variants[j].rvalue.s; ++j; }
                 if (j < N && !is_labels[j]) { params.flags   = variants[j].rvalue.i; ++j; }
                 switch (v.get_type()) {
