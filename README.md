@@ -40,7 +40,7 @@ Tested on oF v0.12.0 (win/mac)
 
 ## Example
 
-### using IMGUI_AUTO
+### using IMGUI_AUTOS
 
 ```cpp
 class MyApp : public ofBaseApp {
@@ -102,7 +102,7 @@ public:
 };
 ```
 
-### using IMGUI_AUTO2 (smarter)
+### using IMGUI_AUTOS2 (smarter)
 
 ```cpp
 void drawGui() {
@@ -128,10 +128,16 @@ void drawGui() {
 }
 ```
 
-### IMGUI_AUTO2 Limitations
+### IMGUI_AUTOS2 Limitations
 
 - enum is treated as int (not becomes Combo)
 - runtime overhead (a little for parsing string on runtime)
+
+||IMGUI_AUTOS|IMGUI_AUTOS2
+|-|-|-|
+|enum|O|X|
+|overhead|low|middle|
+|parameters|X (use `IMGUI_AUTO`)|O|
 
 ## Note: for save/load
 
