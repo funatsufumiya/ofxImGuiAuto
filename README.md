@@ -143,6 +143,6 @@ ofxJsonUtilsUtils's `JSON_FUNCS` syntax will fit well `IMGUI_AUTOS` or `IMGUI_AU
 
 ## License
 
-0BSD or WTFPL
+[0BSD](LICENSE)
 
 (Please note that [magic_enum](https://github.com/Neargye/magic_enum) is [MIT License](https://github.com/Neargye/magic_enum/blob/master/LICENSE).)
