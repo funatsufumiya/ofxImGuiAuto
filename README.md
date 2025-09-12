@@ -134,14 +134,14 @@ void drawGui() {
 ### IMGUI_AUTOS2 Limitations
 
 - enum is treated as int (not becomes Combo)
-- runtime overhead (to parse given macro string on runtime, at every frame)
 
 ||IMGUI_AUTOS|IMGUI_AUTOS2
 |-|-|-|
 |enum|O|X|
 |parameters|X (use `IMGUI_AUTO`)|O|
-|overhead|low|middle|
 |args limit|14|(infinite)|
+
+- Please not that `IMGUI_AUTO2` macro string is parsed at first call, and cached. If you won't cache it, please `#define IMGUI_AUTO_NO_CACHE` before `#include "ofxImGuiAuto.h"`.
 
 ## Note: for save/load
 

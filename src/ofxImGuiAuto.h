@@ -7,7 +7,10 @@
 #include <map>
 #include <typeindex>
 #include <cctype>
+#include <optional>
 #include "magic_enum.hpp"
+
+#define IMGUI_AUTO_CACHE_PASING_RESULT
 
 class ofxImGuiAuto {
 public:
@@ -199,8 +202,19 @@ public:
         }
     }
 
-    static void DrawControlsVA(const char* labels_str, Variant* variants) {
-        auto labels = SplitAndTrimLabels(labels_str);
+    static void DrawControlsVA(const char* labels_str, Variant* variants, std::optional<std::string_view> cache_key = std::nullopt) {
+        std::vector<std::string> labels;
+
+        #if defined(IMGUI_AUTO_CACHE_PASING_RESULT) && !defined(IMGUI_AUTO_NO_CACHE)
+        if (cache_key) {
+            labels = SplitAndTrimLabelsCached(labels_str, cache_key.value());
+        } else {
+            labels = SplitAndTrimLabels(labels_str);
+        }
+        #else
+        labels = SplitAndTrimLabels(labels_str);
+        #endif // IMGUI_AUTO_CACHE_PASING_RESULT
+
         size_t N = labels.size();
         std::vector<bool> is_labels;
         for(size_t i=0; i<N; ++i){
@@ -284,6 +298,26 @@ public:
     }
 
     protected:
+        static std::map<std::string_view, std::vector<std::string>>& GetLabelCache() {
+            static std::map<std::string_view, std::vector<std::string>> cache;
+            return cache;
+        }
+        static std::vector<std::string> SplitAndTrimLabelsCached(const char* labels, std::string_view cache_key) {
+            auto& cache = GetLabelCache();
+            auto it = cache.find(cache_key);
+            if (it != cache.end()) return it->second;
+            std::vector<std::string> result;
+            std::istringstream ss(labels);
+            std::string item;
+            while (std::getline(ss, item, ',')) {
+                // trim
+                item.erase(item.begin(), std::find_if(item.begin(), item.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+                item.erase(std::find_if(item.rbegin(), item.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), item.end());
+                result.push_back(item);
+            }
+            cache[cache_key] = result;
+            return cache[cache_key];
+        }
         static std::vector<std::string> SplitAndTrimLabels(const char* labels) {
             std::vector<std::string> result;
             std::istringstream ss(labels);
@@ -296,7 +330,6 @@ public:
             }
             return result;
         }
-
         static bool is_label(const std::string& str) {
             if (str.empty()) return false;
             char c = str[0];
@@ -318,8 +351,9 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
 /// @brief IMGUI_AUTOS(var_a, param1, param2, var_b, var_c, param1, ...)
 #define IMGUI_AUTOS2(...) [&](){ \
     const char* labels_str = #__VA_ARGS__; \
+    const std::string cache_key = std::string(__FILE__) + to_string(__LINE__); \
     ofxImGuiAuto::Variant variants[] = {__VA_ARGS__}; \
-    ofxImGuiAuto::DrawControlsVA(labels_str, variants); \
+    ofxImGuiAuto::DrawControlsVA(labels_str, variants, cache_key); \
 }();
 
 #define IMGUI_EXPAND(x) x
