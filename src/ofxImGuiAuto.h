@@ -65,6 +65,7 @@ public:
         Variant(const char*& v)         : typ(Type::TYPE_CONST_CHAR), _is_rvalue(false) { lvalue.s = &v; }
         Variant(bool& v)                : typ(Type::TYPE_BOOL), _is_rvalue(false)       { lvalue.b = &v; }
         Variant(float& v)               : typ(Type::TYPE_FLOAT), _is_rvalue(false)      { lvalue.f = &v; }
+        Variant(double& v)               : typ(Type::TYPE_FLOAT), _is_rvalue(false)      { lvalue.f = &v; }
         Variant(int& v)                 : typ(Type::TYPE_INT), _is_rvalue(false)        { lvalue.i = &v; }
         Variant(ofVec2f& v)             : typ(Type::TYPE_VEC2F), _is_rvalue(false)      { lvalue.v2 = &v; }
         Variant(ofVec3f& v)             : typ(Type::TYPE_VEC3F), _is_rvalue(false)      { lvalue.v3 = &v; }
@@ -77,6 +78,7 @@ public:
         Variant(const char*&& v)          : typ(Type::TYPE_CONST_CHAR), _is_rvalue(true)  { rvalue.s = v; }
         Variant(bool&& v)                 : typ(Type::TYPE_BOOL), _is_rvalue(true)        { rvalue.b = v; }
         Variant(float&& v)                : typ(Type::TYPE_FLOAT), _is_rvalue(true)       { rvalue.f = v; }
+        Variant(double&& v)               : typ(Type::TYPE_FLOAT), _is_rvalue(false)      { lvalue.f = v; }
         Variant(int&& v)                  : typ(Type::TYPE_INT), _is_rvalue(true)         { rvalue.i = v; }
         Variant(ofVec2f&& v)              : typ(Type::TYPE_VEC2F), _is_rvalue(true)       { rvalue.v2 = v; }
         Variant(ofVec3f&& v)              : typ(Type::TYPE_VEC3F), _is_rvalue(true)       { rvalue.v3 = v; }
