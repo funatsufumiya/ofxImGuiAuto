@@ -130,7 +130,7 @@ void drawGui() {
 
 ### IMGUI_AUTO2 Limitations
 
-- enum becomes simple int (not Combo)
+- enum is treated as int (not becomes Combo)
 - runtime overhead (a little for parsing string on runtime)
 
 
