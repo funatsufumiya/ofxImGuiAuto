@@ -40,7 +40,7 @@ Tested on oF v0.12.0 (win/mac)
 
 ## Example
 
-### using IMGUI_AUTOS
+### using IMGUI_AUTOS / IMGUI_AUTO
 
 ```cpp
 class MyApp : public ofBaseApp {
