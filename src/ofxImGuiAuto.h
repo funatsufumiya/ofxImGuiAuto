@@ -348,12 +348,19 @@ public:
 inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::saved_time_left_map;
 inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_map;
 
-/// @brief IMGUI_AUTOS(var_a, param1, param2, var_b, var_c, param1, ...)
+/// @brief IMGUI_AUTOS2(var_a, param1, param2, var_b, var_c, param1, ...)
 #define IMGUI_AUTOS2(...) [&](){ \
     const char* labels_str = #__VA_ARGS__; \
     const std::string cache_key = std::string(__FILE__) + to_string(__LINE__); \
     ofxImGuiAuto::Variant variants[] = {__VA_ARGS__}; \
     ofxImGuiAuto::DrawControlsVA(labels_str, variants, cache_key); \
+}();
+
+/// @brief IMGUI_AUTOS2_NO_CACHE(var_a, param1, param2, var_b, var_c, param1, ...)
+#define IMGUI_AUTOS2_NO_CACHE(...) [&](){ \
+    const char* labels_str = #__VA_ARGS__; \
+    ofxImGuiAuto::Variant variants[] = {__VA_ARGS__}; \
+    ofxImGuiAuto::DrawControlsVA(labels_str, variants); \
 }();
 
 #define IMGUI_EXPAND(x) x
