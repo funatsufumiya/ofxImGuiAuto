@@ -26,11 +26,14 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+		void save();
+		void load();
 
 		ofxImGui::Gui gui;
 
 		ofVec2f size = ofVec2f(100, 100);
+		ofColor color = ofColor::red;
 		float angle;
-		bool flag;
+		bool color_on = true;
 		MyChoise choise;
 };

@@ -30,6 +30,7 @@ public:
             TYPE_VEC2F,
             TYPE_VEC3F,
             TYPE_RECT,
+            TYPE_COLOR,
             TYPE_ENUM
         };
         union LValue {
@@ -40,6 +41,7 @@ public:
             int* i;
             ofVec2f* v2;
             ofVec3f* v3;
+            ofColor* c;
             ofRectangle* r;
             void* e; // enum
 
@@ -55,6 +57,7 @@ public:
             int i;
             ofVec2f v2;
             ofVec3f v3;
+            ofColor c;
             ofRectangle r;
 
             RValue() : s(nullptr) {}
@@ -72,6 +75,7 @@ public:
         Variant(int& v)                 : typ(Type::TYPE_INT), _is_rvalue(false)        { lvalue.i = &v; }
         Variant(ofVec2f& v)             : typ(Type::TYPE_VEC2F), _is_rvalue(false)      { lvalue.v2 = &v; }
         Variant(ofVec3f& v)             : typ(Type::TYPE_VEC3F), _is_rvalue(false)      { lvalue.v3 = &v; }
+        Variant(ofColor& v)             : typ(Type::TYPE_COLOR), _is_rvalue(false)      { lvalue.c = &v; }
         Variant(ofRectangle& v)         : typ(Type::TYPE_RECT), _is_rvalue(false)       { lvalue.r = &v; }
         template<typename T>
         Variant(T& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
@@ -85,6 +89,7 @@ public:
         Variant(int&& v)                  : typ(Type::TYPE_INT), _is_rvalue(true)         { rvalue.i = v; }
         Variant(ofVec2f&& v)              : typ(Type::TYPE_VEC2F), _is_rvalue(true)       { rvalue.v2 = v; }
         Variant(ofVec3f&& v)              : typ(Type::TYPE_VEC3F), _is_rvalue(true)       { rvalue.v3 = v; }
+        Variant(ofColor&& v)              : typ(Type::TYPE_COLOR), _is_rvalue(true)       { rvalue.c = v; }
         Variant(ofRectangle&& v)          : typ(Type::TYPE_RECT), _is_rvalue(true)        { rvalue.r = v; }
         template<typename T>
         Variant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
@@ -175,6 +180,13 @@ public:
             ImGui::DragFloat2(label, &v.x, std::get<I+1>(tup)...);
         } else if constexpr (std::is_same_v<T, ofVec3f>) {
             ImGui::DragFloat3(label, &v.x, std::get<I+1>(tup)...);
+        } else if constexpr (std::is_same_v<T, ofColor>) {
+            float col[3] = { v.r / 255.0f, v.g / 255.0f, v.b / 255.0f };
+            if(ImGui::ColorEdit3(label, col)){
+                v.r = col[0] * 255.0f;
+                v.g = col[1] * 255.0f;
+                v.b = col[2] * 255.0f;
+            }
         } else if constexpr (std::is_same_v<T, ofRectangle>) {
             float rect[4] = { v.x, v.y, v.width, v.height };
             if (ImGui::DragFloat4(label, rect, std::get<I+1>(tup)...)) {
@@ -251,6 +263,9 @@ public:
                         break;
                     case Variant::Type::TYPE_RECT:
                         callDrawControl(v.lvalue.r, params, labels[i].c_str());
+                        break;
+                    case Variant::Type::TYPE_COLOR:
+                        callDrawControl(v.lvalue.c, params, labels[i].c_str());
                         break;
                     case Variant::Type::TYPE_ENUM:
                         callDrawControl<int>(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());

@@ -14,13 +14,13 @@ void ofApp::update(){
 void ofApp::draw(){
     ofPushStyle();
     ofPushMatrix();
-    if(flag){
-        ofSetColor(255, 0, 0);
+    ofDrawBitmapString(magic_enum::enum_name(choise), 500, 100);
+    if(color_on){
+        ofSetColor(color);
     }
-    ofTranslate(100, 100);
+    ofTranslate(300, 100);
     ofRotateDeg(angle);
     ofDrawRectangle(0, 0, size.x, size.y);
-    // ofDrawRectangle(100, 100, size.x, size.x);
     ofPopMatrix();
     ofPopStyle();
 
@@ -31,14 +31,23 @@ void ofApp::draw(){
     IMGUI_AUTOS2(
         size, 1.0f, 10.0f, 1000.0f, "%.0f",
         angle, 0.1f,
-        flag,
+        color,
+        color_on,
     );
-
     IMGUI_AUTO(choise);
+    IMGUI_AUTO_SAVE_LOAD(save(), load());
 
     ImGui::End();
 
     gui.end();
+}
+
+void ofApp::save(){
+    ofLog() << "save() does nothing!";
+}
+
+void ofApp::load(){
+    ofLog() << "load() does nothing!";
 }
 
 //--------------------------------------------------------------
