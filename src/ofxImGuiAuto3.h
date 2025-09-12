@@ -179,6 +179,12 @@ public:
         DrawControlTuple(label, tup, std::index_sequence_for<Args...>{});
     }
 
+    template<typename T, typename... Args>
+    static void DrawControl(std::tuple<T&> tup, const char* label) {
+        auto& v = std::get<0>(tup);
+        DrawControl(v, label);
+    }
+
     template<typename T, typename... Args, size_t... I>
     static void DrawControlTuple(const char* label, std::tuple<T&, Args...>& tup, std::index_sequence<I...>) {
         auto& v = std::get<0>(tup);
@@ -248,7 +254,7 @@ public:
                     ++j;
                 }
                 if (params.empty()) {
-                    DrawControl(*var, labels[i].c_str());
+                    DrawControl(std::make_tuple(std::ref(*var)), labels[i].c_str());
                 } else if (params.size() == 1) {
                     DrawControl(std::make_tuple(std::ref(*var), params[0]), labels[i].c_str());
                 } else if (params.size() == 2) {
