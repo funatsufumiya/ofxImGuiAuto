@@ -185,6 +185,12 @@ public:
         DrawControl(v, label);
     }
 
+    template<typename T, typename... Args>
+    static void DrawControl(T& v, std::tuple<Args...> tup, const char* label) {
+        auto full_tuple = std::tuple_cat(std::make_tuple(std::ref(v)), tup);
+        DrawControlTuple(label, full_tuple, std::index_sequence_for<Args...>{});
+    }
+
     template<typename T, typename... Args, size_t... I>
     static void DrawControlTuple(const char* label, std::tuple<T&, Args...>& tup, std::index_sequence<I...>) {
         auto& v = std::get<0>(tup);
