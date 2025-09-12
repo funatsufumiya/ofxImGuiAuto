@@ -136,8 +136,8 @@ void drawGui() {
 ||IMGUI_AUTOS|IMGUI_AUTOS2
 |-|-|-|
 |enum|O|X|
-|overhead|low|middle|
 |parameters|X (use `IMGUI_AUTO`)|O|
+|overhead|low|middle|
 
 ## Note: for save/load
 
