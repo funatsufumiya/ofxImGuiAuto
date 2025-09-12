@@ -363,6 +363,13 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
     ofxImGuiAuto::DrawControlsVA(labels_str, variants); \
 }();
 
+/// @brief IMGUI_AUTOS2_NC(var_a, param1, param2, var_b, var_c, param1, ...)
+#define IMGUI_AUTOS2_NC(...) [&](){ \
+    const char* labels_str = #__VA_ARGS__; \
+    ofxImGuiAuto::Variant variants[] = {__VA_ARGS__}; \
+    ofxImGuiAuto::DrawControlsVA(labels_str, variants); \
+}();
+
 #define IMGUI_EXPAND(x) x
 #define IMGUI_KV1(name) ofxImGuiAuto::DrawControl(name, #name);
 #define IMGUI_KV2(name, ...) IMGUI_KV1(name) IMGUI_EXPAND(IMGUI_KV1(__VA_ARGS__))

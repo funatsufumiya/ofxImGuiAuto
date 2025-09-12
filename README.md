@@ -143,10 +143,13 @@ void drawGui() {
 |runtime overhead|none|low|
 
 > [!WARNING]
->  `IMGUI_AUTO2()` macro string is parsed on first call in run-time, and cached statically (with key `__FILE__` + `__LINE__` .)
+> If you have ***GUI flickering*** on your app, please read below.
+
+> [!NOTE]
+>  `IMGUI_AUTO2()` macro string is parsed on first call in run-time, and cached statically (with key `__FILE__` + `__LINE__`,) but **this would make GUI flickering** in some case. 
 > 
 > If you won't cache it,
-> - use `IMGUI_AUTO2_NO_CACHE()` macro instaed
+> - use `IMGUI_AUTO2_NO_CACHE()` (short-hand: `IMGUI_AUTO2_NC()` ) macro instaed
 > - or `#define IMGUI_AUTO_NO_CACHE` before `#include "ofxImGuiAuto.h"`.
 
 ## Note: for save/load
