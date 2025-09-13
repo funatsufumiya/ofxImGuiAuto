@@ -23,6 +23,7 @@ public:
                 list.push_back(v);
             }
         }
+        EnumNames(){}
 
         std::vector<std::string_view> list;
     };
@@ -34,6 +35,7 @@ public:
                 list.push_back(static_cast<int>(v));
             }
         }
+        EnumValues(){}
 
         std::vector<int> list;
     };
@@ -123,8 +125,8 @@ public:
         Variant(ofVec3f&& v)              : typ(Type::TYPE_VEC3F), _is_rvalue(true)       { rvalue.v3 = v; }
         Variant(ofColor&& v)              : typ(Type::TYPE_COLOR), _is_rvalue(true)       { rvalue.c = v; }
         Variant(ofRectangle&& v)          : typ(Type::TYPE_RECT), _is_rvalue(true)        { rvalue.r = v; }
-        Variant(EnumNames&& v)          : typ(Type::TYPE_ENUM_NAMES), _is_rvalue(true)        { rvalue.e = &v; } // WORKAROUND
-        Variant(EnumValues&& v)          : typ(Type::TYPE_ENUM_VALUES), _is_rvalue(true)        { rvalue.e = &v; } // WORKAROUND
+        Variant(EnumNames&& v)          : typ(Type::TYPE_ENUM_NAMES), _is_rvalue(true)        { ofxImGuiAuto::temp_enum_names_rvalue = v; rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue; } // WORKAROUND
+        Variant(EnumValues&& v)          : typ(Type::TYPE_ENUM_VALUES), _is_rvalue(true)        { ofxImGuiAuto::temp_enum_values_rvalue = v; rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue; } // WORKAROUND
         template<typename T>
         Variant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
             : typ(Type::TYPE_ENUM), _is_rvalue(true), enum_type(typeid(T))             { rvalue.e = nullptr; } // WORKAROUND
@@ -373,6 +375,9 @@ public:
     }
 
     protected:
+        static EnumNames temp_enum_names_rvalue;
+        static EnumValues temp_enum_values_rvalue;
+
         static std::map<size_t, std::vector<std::string>>& GetLabelCache() {
             static std::map<size_t, std::vector<std::string>> cache;
             return cache;
@@ -424,9 +429,6 @@ public:
             DrawControl(std::make_tuple(std::ref(*v), params.v_speed, params.v_min, params.v_max, params.format, params.flags), label, enum_names, enum_values);
         }
 };
-
-inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::saved_time_left_map;
-inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_map;
 
 /// @brief IMGUI_AUTOS2(var_a, param1, param2, var_b, var_c, param1, ...)
 #define IMGUI_AUTOS2(...) [&](){ \
