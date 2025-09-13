@@ -287,10 +287,38 @@ public:
         size_t N = labels.size();
         std::vector<bool> is_labels;
         for(size_t i=0; i<N; ++i){
+            std::string label = labels[i];
+            
+            // if label is ENUM_(...), use ... as label
+            if(label.size() > 6 && label.substr(0,5) == "ENUM_" && label[5] == '(' && label[label.size()-1] == ')'){
+                label = label.substr(6, label.size()-7);
+                labels[i] = label;
+                
+                Variant& v = variants[i];
+                Variant& v1 = variants[i+1];
+                Variant& v2 = variants[i+2];
+                if(v.get_type() == Variant::Type::TYPE_ENUM){
+                    if (v1.get_type() == Variant::Type::TYPE_ENUM_NAMES){
+                        labels.insert(labels.begin() + i + 1, "");
+                        i++;
+                        N++;
+                    }
+                
+                    if (v2.get_type() == Variant::Type::TYPE_ENUM_VALUES){
+                        labels.insert(labels.begin() + i + 1, "");
+                        i++;
+                        N++;
+                    }
+                }
+            }
+        }
+        
+        for(size_t i=0; i<N; ++i){
             is_labels.push_back(is_label(labels[i]));
         }
 
         size_t i = 0;
+
         while (i < N) {
             if (is_labels[i]) {
                 // ofLog() << "label: " << labels[i];
@@ -299,29 +327,33 @@ public:
                 EnumNames* enum_names;
                 EnumValues* enum_values;
 
+                std::string label = labels[i];
+
+//                // if label is ENUM_(...), use ... as label
+//                if(label.size() > 6 && label.substr(0,5) == "ENUM_" && label[5] == '(' && label[label.size()-1] == ')'){
+//                    label = label.substr(6, label.size()-7);
+//                }
+
                 if(v.get_type() == Variant::Type::TYPE_ENUM){
-                    std::string label = labels[i];
-
-                    // if label is ENUM_(...), use ... as label
-                    if(label.size() > 6 && label.substr(0,5) == "ENUM_" && label[5] == '(' && label[label.size()-1] == ')'){
-                        label = label.substr(6, label.size()-7);
-                    }
-
-                    if (variants[j].get_type() == Variant::Type::TYPE_ENUM_NAMES) {
-                        if(variants[j].is_lvalue()){
-                            enum_names = reinterpret_cast<EnumNames*>(variants[j].lvalue.e);
-                        }else{
-                            // enum_names = reinterpret_cast<EnumNames*>(variants[j].rvalue.e);
-                            enum_names = &ofxImGuiAuto::temp_enum_names_rvalues[label]; // WORKAROUND
+                    if(j+1 < N){
+                        if (variants[j].get_type() == Variant::Type::TYPE_ENUM_NAMES) {
+                            if(variants[j].is_lvalue()){
+                                enum_names = reinterpret_cast<EnumNames*>(variants[j].lvalue.e);
+                            }else{
+                                // enum_names = reinterpret_cast<EnumNames*>(variants[j].rvalue.e);
+                                enum_names = &ofxImGuiAuto::temp_enum_names_rvalues[label]; // WORKAROUND
+                            }
+                            ++j;
                         }
-                    }
-
-                    if (variants[j+1].get_type() == Variant::Type::TYPE_ENUM_VALUES) {
-                        if(variants[j+1].is_lvalue()){
-                            enum_values = reinterpret_cast<EnumValues*>(variants[j+1].lvalue.e);
-                        }else{
-                            // enum_values = reinterpret_cast<EnumValues*>(variants[j+1].rvalue.e);
-                            enum_values = &ofxImGuiAuto::temp_enum_values_rvalues[label]; // WORKAROUND
+                        
+                        if (variants[j].get_type() == Variant::Type::TYPE_ENUM_VALUES) {
+                            if(variants[j].is_lvalue()){
+                                enum_values = reinterpret_cast<EnumValues*>(variants[j].lvalue.e);
+                            }else{
+                                // enum_values = reinterpret_cast<EnumValues*>(variants[j+enum_offset].rvalue.e);
+                                enum_values = &ofxImGuiAuto::temp_enum_values_rvalues[label]; // WORKAROUND
+                            }
+                            ++j;
                         }
                     }
                 }
@@ -362,35 +394,28 @@ public:
                 if (j < N && !is_labels[j]) { params.flags   = variants[j].rvalue.i; ++j; }
                 switch (v.get_type()) {
                     case Variant::Type::TYPE_FLOAT:
-                        callDrawControl(v.lvalue.f, params, labels[i].c_str());
+                        callDrawControl(v.lvalue.f, params, label.c_str());
                         break;
                     case Variant::Type::TYPE_INT:
-                        callDrawControl(v.lvalue.i, params, labels[i].c_str());
+                        callDrawControl(v.lvalue.i, params, label.c_str());
                         break;
                     case Variant::Type::TYPE_BOOL:
-                        callDrawControl(v.lvalue.b, params, labels[i].c_str());
+                        callDrawControl(v.lvalue.b, params, label.c_str());
                         break;
                     case Variant::Type::TYPE_VEC2F:
-                        callDrawControl(v.lvalue.v2, params, labels[i].c_str());
+                        callDrawControl(v.lvalue.v2, params, label.c_str());
                         break;
                     case Variant::Type::TYPE_VEC3F:
-                        callDrawControl(v.lvalue.v3, params, labels[i].c_str());
+                        callDrawControl(v.lvalue.v3, params, label.c_str());
                         break;
                     case Variant::Type::TYPE_RECT:
-                        callDrawControl(v.lvalue.r, params, labels[i].c_str());
+                        callDrawControl(v.lvalue.r, params, label.c_str());
                         break;
                     case Variant::Type::TYPE_COLOR:
-                        callDrawControl(v.lvalue.c, params, labels[i].c_str());
+                        callDrawControl(v.lvalue.c, params, label.c_str());
                         break;
                     case Variant::Type::TYPE_ENUM:
                         {
-                            std::string label = labels[i];
-
-                            // if label is ENUM_(...), use ... as label
-                            if(label.size() > 6 && label.substr(0,5) == "ENUM_" && label[5] == '(' && label[label.size()-1] == ')'){
-                                label = label.substr(6, label.size()-7);
-                            }
-                            
                             if(enum_names != nullptr && enum_values != nullptr){
                                 callDrawControl(reinterpret_cast<int*>(v.lvalue.e), *enum_names, *enum_values, params, label.c_str());
                             }else{
