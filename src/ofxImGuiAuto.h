@@ -15,6 +15,29 @@
 
 class ofxImGuiAuto {
 public:
+    struct EnumNames {
+        template<typename T>
+        // EnumNames(const T& arr) : list(arr.begin(), arr.end()) {}
+        EnumNames(const T& arr){
+            for(auto v: arr){
+                list.push_back(v);
+            }
+        }
+
+        std::vector<std::string_view> list;
+    };
+
+    struct EnumValues {
+        template<typename T>
+        EnumValues(const T& arr){
+            for(auto v: arr){
+                list.push_back(static_cast<int>(v));
+            }
+        }
+
+        std::vector<int> list;
+    };
+
     struct ControlParams {
         float v_speed = 1.0f;
         float v_min = 0.0f;
@@ -35,7 +58,9 @@ public:
             TYPE_VEC3F,
             TYPE_RECT,
             TYPE_COLOR,
-            TYPE_ENUM
+            TYPE_ENUM,
+            TYPE_ENUM_NAMES,
+            TYPE_ENUM_VALUES
         };
         union LValue {
             const char** s;
@@ -63,6 +88,7 @@ public:
             ofVec3f v3;
             ofColor c;
             ofRectangle r;
+            void* e; // enum
 
             RValue() : s(nullptr) {}
             ~RValue() {}
@@ -81,6 +107,8 @@ public:
         Variant(ofVec3f& v)             : typ(Type::TYPE_VEC3F), _is_rvalue(false)      { lvalue.v3 = &v; }
         Variant(ofColor& v)             : typ(Type::TYPE_COLOR), _is_rvalue(false)      { lvalue.c = &v; }
         Variant(ofRectangle& v)         : typ(Type::TYPE_RECT), _is_rvalue(false)       { lvalue.r = &v; }
+        Variant(EnumNames& v)         : typ(Type::TYPE_ENUM_NAMES), _is_rvalue(false)       { lvalue.e = &v; }
+        Variant(EnumValues& v)         : typ(Type::TYPE_ENUM_VALUES), _is_rvalue(false)       { lvalue.e = &v; }
         template<typename T>
         Variant(T& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
             : typ(Type::TYPE_ENUM), _is_rvalue(false), enum_type(typeid(T))            { lvalue.e = (void*)&v; }
@@ -95,9 +123,11 @@ public:
         Variant(ofVec3f&& v)              : typ(Type::TYPE_VEC3F), _is_rvalue(true)       { rvalue.v3 = v; }
         Variant(ofColor&& v)              : typ(Type::TYPE_COLOR), _is_rvalue(true)       { rvalue.c = v; }
         Variant(ofRectangle&& v)          : typ(Type::TYPE_RECT), _is_rvalue(true)        { rvalue.r = v; }
+        Variant(EnumNames&& v)          : typ(Type::TYPE_ENUM_NAMES), _is_rvalue(true)        { rvalue.e = &v; } // WORKAROUND
+        Variant(EnumValues&& v)          : typ(Type::TYPE_ENUM_VALUES), _is_rvalue(true)        { rvalue.e = &v; } // WORKAROUND
         template<typename T>
         Variant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
-            : typ(Type::TYPE_ENUM), _is_rvalue(true), enum_type(typeid(T))             { lvalue.e = nullptr; }
+            : typ(Type::TYPE_ENUM), _is_rvalue(true), enum_type(typeid(T))             { rvalue.e = nullptr; } // WORKAROUND
 
         ~Variant() {} // Explicit destructor to satisfy union requirements
 
@@ -152,6 +182,32 @@ public:
     template<typename T, typename... Args>
     static void DrawControl(std::tuple<T&, Args...> tup, const char* label) {
         DrawControlTuple(label, tup, std::index_sequence_for<Args...>{});
+    }
+
+    template<typename T, typename... Args>
+    static void DrawControl(std::tuple<T&, Args...> tup, const char* label, const EnumNames& enum_names, const EnumValues& enum_values) {
+        DrawControlTuple(label, enum_names, enum_values, tup, std::index_sequence_for<Args...>{});
+    }
+
+    template<typename T, typename... Args, size_t... I>
+    static void DrawControlTuple(const char* label, const EnumNames& enum_names, const EnumValues& enum_values, std::tuple<T&, Args...>& tup, std::index_sequence<I...>) {
+        auto& v = std::get<0>(tup);
+        auto names = enum_names.list;
+        int current = static_cast<int>(v);
+        auto values = enum_values.list;
+        auto currentName = names[v];
+        if (ImGui::BeginCombo(label, std::string(currentName).c_str())) {
+            for (int i = 0; i < names.size(); i++) {
+                bool is_selected = (v == values[i]);
+                if (ImGui::Selectable(std::string(names[i]).c_str(), is_selected)) {
+                    v = values[i];
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
     }
 
     template<typename T, typename... Args, size_t... I>
@@ -228,9 +284,17 @@ public:
                 // ofLog() << "label: " << labels[i];
                 Variant& v = variants[i];
                 size_t j = i + 1;
+                EnumNames* enum_names;
+                EnumValues* enum_values;
                 ControlParams params;
                     if (j < N && !is_labels[j]) {
-                        if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
+                        if (variants[j].get_type() == Variant::Type::TYPE_ENUM_NAMES) {
+                            if(variants[j].is_lvalue()){
+                                enum_names = reinterpret_cast<EnumNames*>(variants[j].lvalue.e);
+                            }else{
+                                enum_names = reinterpret_cast<EnumNames*>(variants[j].rvalue.e);
+                            }
+                        }else if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
                             params.v_speed = variants[j].rvalue.f;
                         } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
                             params.v_speed = static_cast<float>(variants[j].rvalue.d);
@@ -240,7 +304,13 @@ public:
                         ++j;
                     }
                     if (j < N && !is_labels[j]) {
-                        if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
+                        if (variants[j].get_type() == Variant::Type::TYPE_ENUM_VALUES) {
+                            if(variants[j].is_lvalue()){
+                                enum_values = reinterpret_cast<EnumValues*>(variants[j].lvalue.e);
+                            }else{
+                                enum_values = reinterpret_cast<EnumValues*>(variants[j].rvalue.e);
+                            }
+                        } else if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
                             params.v_min = variants[j].rvalue.f;
                         } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
                             params.v_min = static_cast<float>(variants[j].rvalue.d);
@@ -284,7 +354,11 @@ public:
                         callDrawControl(v.lvalue.c, params, labels[i].c_str());
                         break;
                     case Variant::Type::TYPE_ENUM:
-                        callDrawControl<int>(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());
+                        if(enum_names != nullptr && enum_values != nullptr){
+                            callDrawControl(reinterpret_cast<int*>(v.lvalue.e), *enum_names, *enum_values, params, labels[i].c_str());
+                        }else{
+                            callDrawControl<int>(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());
+                        }
                         break;
                     case Variant::Type::TYPE_CONST_CHAR:
                     case Variant::Type::TYPE_NONE:
@@ -334,7 +408,7 @@ public:
         static bool is_label(const std::string& str) {
             if (str.empty()) return false;
             char c = str[0];
-            if (c == '\"' || c == '\'' || c == '.') return false;
+            if (c == '\"' || c == '\'' || c == '.' || c == '[' || c == '{' || c == '(') return false;
             if (std::isdigit(static_cast<unsigned char>(c))) return false;
             return true;
         }
@@ -343,6 +417,11 @@ public:
         static void callDrawControl(T* v, const ControlParams& params, const char* label) {
             if (!v) return;
             DrawControl(std::make_tuple(std::ref(*v), params.v_speed, params.v_min, params.v_max, params.format, params.flags), label);
+        }
+
+        static void callDrawControl(int* v, const EnumNames& enum_names, const EnumValues& enum_values, const ControlParams& params, const char* label) {
+            if (!v) return;
+            DrawControl(std::make_tuple(std::ref(*v), params.v_speed, params.v_min, params.v_max, params.format, params.flags), label, enum_names, enum_values);
         }
 };
 
@@ -413,3 +492,5 @@ inline std::map<ImGuiID, float> ofxImGuiAuto::SaveLoadButton::loaded_time_left_m
     if(ofxImGuiAuto::SaveLoadButton::Load(loadLabel)) { IMGUI_EXPAND(loadFunc); }
 /// @brief IMGUI_AUTO_SAVE_LOAD(save(), load()) or IMGUI_AUTO_SAVE_LOAD(save(), load(), "save", "load")
 #define IMGUI_AUTO_SAVE_LOAD(...) IMGUI_EXPAND(IMGUI_AUTO_SAVE_LOAD_CHOOSER(__VA_ARGS__, IMGUI_AUTO_SAVE_LOAD_4, unused, IMGUI_AUTO_SAVE_LOAD_2)(__VA_ARGS__))
+
+#define ENUM_(enum_value) enum_value, (ofxImGuiAuto::EnumNames(magic_enum::enum_names<decltype(enum_value)>())), (ofxImGuiAuto::EnumValues(magic_enum::enum_values<decltype(enum_value)>()))
