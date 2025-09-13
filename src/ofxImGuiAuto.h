@@ -125,8 +125,16 @@ public:
         Variant(ofVec3f&& v)              : typ(Type::TYPE_VEC3F), _is_rvalue(true)       { rvalue.v3 = v; }
         Variant(ofColor&& v)              : typ(Type::TYPE_COLOR), _is_rvalue(true)       { rvalue.c = v; }
         Variant(ofRectangle&& v)          : typ(Type::TYPE_RECT), _is_rvalue(true)        { rvalue.r = v; }
-        Variant(EnumNames&& v)          : typ(Type::TYPE_ENUM_NAMES), _is_rvalue(true)        { ofxImGuiAuto::temp_enum_names_rvalue = v; rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue; } // WORKAROUND
-        Variant(EnumValues&& v)          : typ(Type::TYPE_ENUM_VALUES), _is_rvalue(true)        { ofxImGuiAuto::temp_enum_values_rvalue = v; rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue; } // WORKAROUND
+        Variant(EnumNames&& v)          : typ(Type::TYPE_ENUM_NAMES), _is_rvalue(true)        { 
+            // WORKAROUND
+            ofxImGuiAuto::temp_enum_names_rvalue = v;
+            rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue;
+        }
+        Variant(EnumValues&& v)          : typ(Type::TYPE_ENUM_VALUES), _is_rvalue(true)        { 
+            // WORKAROUND
+            ofxImGuiAuto::temp_enum_values_rvalue = v;
+            rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue;
+        }
         template<typename T>
         Variant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
             : typ(Type::TYPE_ENUM), _is_rvalue(true), enum_type(typeid(T))             { rvalue.e = nullptr; } // WORKAROUND
@@ -288,15 +296,31 @@ public:
                 size_t j = i + 1;
                 EnumNames* enum_names;
                 EnumValues* enum_values;
+
+                if(v.get_type() == Variant::Type::TYPE_ENUM){
+                    if (variants[j].get_type() == Variant::Type::TYPE_ENUM_NAMES) {
+                        if(variants[j].is_lvalue()){
+                            enum_names = reinterpret_cast<EnumNames*>(variants[j].lvalue.e);
+                        }else{
+                            // enum_names = reinterpret_cast<EnumNames*>(variants[j].rvalue.e);
+                            enum_names = &ofxImGuiAuto::temp_enum_names_rvalue; // WORKAROUND
+                        }
+                    }
+
+                    if (variants[j+1].get_type() == Variant::Type::TYPE_ENUM_VALUES) {
+                        if(variants[j+1].is_lvalue()){
+                            enum_values = reinterpret_cast<EnumValues*>(variants[j+1].lvalue.e);
+                        }else{
+                            // enum_values = reinterpret_cast<EnumValues*>(variants[j+1].rvalue.e);
+                            enum_values = &ofxImGuiAuto::temp_enum_values_rvalue; // WORKAROUND
+                        }
+                    }
+                }
+
                 ControlParams params;
                     if (j < N && !is_labels[j]) {
-                        if (variants[j].get_type() == Variant::Type::TYPE_ENUM_NAMES) {
-                            if(variants[j].is_lvalue()){
-                                enum_names = reinterpret_cast<EnumNames*>(variants[j].lvalue.e);
-                            }else{
-                                enum_names = reinterpret_cast<EnumNames*>(variants[j].rvalue.e);
-                            }
-                        }else if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
+
+                        if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
                             params.v_speed = variants[j].rvalue.f;
                         } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
                             params.v_speed = static_cast<float>(variants[j].rvalue.d);
@@ -306,13 +330,7 @@ public:
                         ++j;
                     }
                     if (j < N && !is_labels[j]) {
-                        if (variants[j].get_type() == Variant::Type::TYPE_ENUM_VALUES) {
-                            if(variants[j].is_lvalue()){
-                                enum_values = reinterpret_cast<EnumValues*>(variants[j].lvalue.e);
-                            }else{
-                                enum_values = reinterpret_cast<EnumValues*>(variants[j].rvalue.e);
-                            }
-                        } else if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
+                        if (variants[j].get_type() == Variant::Type::TYPE_FLOAT) {
                             params.v_min = variants[j].rvalue.f;
                         } else if (variants[j].get_type() == Variant::Type::TYPE_DOUBLE) {
                             params.v_min = static_cast<float>(variants[j].rvalue.d);
@@ -356,10 +374,19 @@ public:
                         callDrawControl(v.lvalue.c, params, labels[i].c_str());
                         break;
                     case Variant::Type::TYPE_ENUM:
-                        if(enum_names != nullptr && enum_values != nullptr){
-                            callDrawControl(reinterpret_cast<int*>(v.lvalue.e), *enum_names, *enum_values, params, labels[i].c_str());
-                        }else{
-                            callDrawControl<int>(reinterpret_cast<int*>(v.lvalue.e), params, labels[i].c_str());
+                        {
+                            std::string label = labels[i];
+
+                            // if label is ENUM_(...), use ... as label
+                            if(label.size() > 6 && label.substr(0,5) == "ENUM_" && label[5] == '(' && label[label.size()-1] == ')'){
+                                label = label.substr(6, label.size()-7);
+                            }
+                            
+                            if(enum_names != nullptr && enum_values != nullptr){
+                                callDrawControl(reinterpret_cast<int*>(v.lvalue.e), *enum_names, *enum_values, params, label.c_str());
+                            }else{
+                                callDrawControl<int>(reinterpret_cast<int*>(v.lvalue.e), params, label.c_str());
+                            }
                         }
                         break;
                     case Variant::Type::TYPE_CONST_CHAR:
