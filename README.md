@@ -10,8 +10,8 @@ IMGUI_AUTOS2(
     angle, 0.1f,
     color,
     color_on,
+    ENUM_(choise)
 );
-IMGUI_AUTO(choise);
 IMGUI_AUTO_SAVE_LOAD(save(), load());
 
 ImGui::End();
@@ -133,11 +133,12 @@ void drawGui() {
 
 ### IMGUI_AUTOS2 Limitations
 
-- enum is treated as int (not becomes Combo)
+- In order to use enum in `IMGUI_AUTOS2`, `ENUM_(enum)` is needed.
+- There is runtime overhead.
 
 ||IMGUI_AUTOS|IMGUI_AUTOS2
 |-|-|-|
-|enum|:white_check_mark:|:x:|
+|enum|:white_check_mark:|:white_check_mark: (use `ENUM_()`) |
 |parameters|:x: (use `IMGUI_AUTO`)|:white_check_mark: [^1]|
 |args limit|14|- (infinite)|
 |runtime overhead|none|low|
