@@ -18,25 +18,27 @@ public:
     struct EnumNames {
         template<typename T>
         // EnumNames(const T& arr) : list(arr.begin(), arr.end()) {}
-        EnumNames(const T& arr){
+        EnumNames(const T& arr, std::string enum_name) : enum_name(enum_name) {
             for(auto v: arr){
                 list.push_back(v);
             }
         }
         EnumNames(){}
 
+        std::string enum_name;
         std::vector<std::string_view> list;
     };
 
     struct EnumValues {
         template<typename T>
-        EnumValues(const T& arr){
+        EnumValues(const T& arr, std::string enum_name) : enum_name(enum_name) {
             for(auto v: arr){
                 list.push_back(static_cast<int>(v));
             }
         }
         EnumValues(){}
 
+        std::string enum_name;
         std::vector<int> list;
     };
 
@@ -127,13 +129,13 @@ public:
         Variant(ofRectangle&& v)          : typ(Type::TYPE_RECT), _is_rvalue(true)        { rvalue.r = v; }
         Variant(EnumNames&& v)          : typ(Type::TYPE_ENUM_NAMES), _is_rvalue(true)        { 
             // WORKAROUND
-            ofxImGuiAuto::temp_enum_names_rvalue = v;
-            rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue;
+            ofxImGuiAuto::temp_enum_names_rvalues[v.enum_name] = v;
+            rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalues[v.enum_name];
         }
         Variant(EnumValues&& v)          : typ(Type::TYPE_ENUM_VALUES), _is_rvalue(true)        { 
             // WORKAROUND
-            ofxImGuiAuto::temp_enum_values_rvalue = v;
-            rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalue;
+            ofxImGuiAuto::temp_enum_values_rvalues[v.enum_name] = v;
+            rvalue.e = &ofxImGuiAuto::temp_enum_names_rvalues[v.enum_name];
         }
         template<typename T>
         Variant(T&& v, std::enable_if_t<std::is_enum<T>::value>* = nullptr)
@@ -298,12 +300,19 @@ public:
                 EnumValues* enum_values;
 
                 if(v.get_type() == Variant::Type::TYPE_ENUM){
+                    std::string label = labels[i];
+
+                    // if label is ENUM_(...), use ... as label
+                    if(label.size() > 6 && label.substr(0,5) == "ENUM_" && label[5] == '(' && label[label.size()-1] == ')'){
+                        label = label.substr(6, label.size()-7);
+                    }
+
                     if (variants[j].get_type() == Variant::Type::TYPE_ENUM_NAMES) {
                         if(variants[j].is_lvalue()){
                             enum_names = reinterpret_cast<EnumNames*>(variants[j].lvalue.e);
                         }else{
                             // enum_names = reinterpret_cast<EnumNames*>(variants[j].rvalue.e);
-                            enum_names = &ofxImGuiAuto::temp_enum_names_rvalue; // WORKAROUND
+                            enum_names = &ofxImGuiAuto::temp_enum_names_rvalues[label]; // WORKAROUND
                         }
                     }
 
@@ -312,7 +321,7 @@ public:
                             enum_values = reinterpret_cast<EnumValues*>(variants[j+1].lvalue.e);
                         }else{
                             // enum_values = reinterpret_cast<EnumValues*>(variants[j+1].rvalue.e);
-                            enum_values = &ofxImGuiAuto::temp_enum_values_rvalue; // WORKAROUND
+                            enum_values = &ofxImGuiAuto::temp_enum_values_rvalues[label]; // WORKAROUND
                         }
                     }
                 }
@@ -402,8 +411,8 @@ public:
     }
 
     protected:
-        static EnumNames temp_enum_names_rvalue;
-        static EnumValues temp_enum_values_rvalue;
+        static std::map<std::string, EnumNames> temp_enum_names_rvalues;
+        static std::map<std::string, EnumValues> temp_enum_values_rvalues;
 
         static std::map<size_t, std::vector<std::string>>& GetLabelCache() {
             static std::map<size_t, std::vector<std::string>> cache;
@@ -522,4 +531,4 @@ public:
 /// @brief IMGUI_AUTO_SAVE_LOAD(save(), load()) or IMGUI_AUTO_SAVE_LOAD(save(), load(), "save", "load")
 #define IMGUI_AUTO_SAVE_LOAD(...) IMGUI_EXPAND(IMGUI_AUTO_SAVE_LOAD_CHOOSER(__VA_ARGS__, IMGUI_AUTO_SAVE_LOAD_4, unused, IMGUI_AUTO_SAVE_LOAD_2)(__VA_ARGS__))
 
-#define ENUM_(enum_value) enum_value, (ofxImGuiAuto::EnumNames(magic_enum::enum_names<decltype(enum_value)>())), (ofxImGuiAuto::EnumValues(magic_enum::enum_values<decltype(enum_value)>()))
+#define ENUM_(enum_value) enum_value, (ofxImGuiAuto::EnumNames(magic_enum::enum_names<decltype(enum_value)>(), #enum_value)), (ofxImGuiAuto::EnumValues(magic_enum::enum_values<decltype(enum_value)>(), #enum_value))
