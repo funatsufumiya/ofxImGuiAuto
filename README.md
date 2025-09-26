@@ -163,6 +163,10 @@ I recommend [ofxJsonUtils](https://github.com/2bbb/ofxJsonUtils) and [ofxJsonUti
 
 ofxJsonUtilsUtils's `JSON_FUNCS` syntax will fit well `IMGUI_AUTOS` or `IMGUI_AUTOS2`.
 
+```cpp
+JSON_FUNCS(name, age, life, score);
+```
+
 > [!NOTE]
 > If you need deep integration with JSON, consider [ofxImGuiJson](https://github.com/nariakiiwatani/ofxImGuiJson) as an alternative.
 
